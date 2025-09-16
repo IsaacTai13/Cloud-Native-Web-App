@@ -3,6 +3,10 @@ spring:
     import: optional:file:.env[.properties]
   application:
     name: Cloud-Native-Web
+  security:
+    user:
+      name: disabled
+      password: disabled
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -17,3 +21,7 @@ spring:
     change-log: classpath:/db/changelog/db.changelog-master.yaml
 server:
   port: ${SERVER_PORT:8081}
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never

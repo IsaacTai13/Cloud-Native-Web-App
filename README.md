@@ -26,3 +26,15 @@ SERVER_PORT=
 ## Run the Application
 
 2. Build & start the app: `./mvnw spring-boot:run`
+
+## Health Check Endpoints
+
+1. /healthz
+   - Method GET
+   - Inserts a record into the `health_checks` table on every request
+   - Return only HTTP status codes (no response body)
+   - Cache is disabled
+2. /api/health
+   - Method GET
+   - Detailed health probe
+   - Does not insert records into the database

@@ -13,7 +13,7 @@ public class HealthCheckService {
         this.healthRepo = healthRepo;
     }
 
-    public HealthCheck record() {
-        return healthRepo.save(new HealthCheck());
+    public void record() {
+        healthRepo.save(new HealthCheck());
     }
 }
