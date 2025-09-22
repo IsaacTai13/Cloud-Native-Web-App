@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-health-checks-table
+      author: isaac
+      changes:
+        - createTable:
+            tableName: health_checks
+            columns:
+              - column:
+                  name: check_id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_health_checks
+              - column:
+                  name: check_datetime
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: health_checks
+            indexName: idx_health_checks_datetime
+            columns:
+              - column:
+                  name: check_datetime
+                  descending: true
