@@ -1,5 +1,6 @@
 package com.isaactai.cloudnativeweb.config;
 
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.isaactai.cloudnativeweb.common.error.ApiErrorResponse;
 import com.isaactai.cloudnativeweb.common.error.BaseApiException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
+    // For my custom BaseApiException
     @ExceptionHandler(BaseApiException.class)
     public ResponseEntity<ApiErrorResponse> handleBase(BaseApiException ex, HttpServletRequest req) {
         HttpStatus status = ex.getStatus();

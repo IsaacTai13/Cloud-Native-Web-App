@@ -2,10 +2,18 @@ package com.isaactai.cloudnativeweb.user;
 
 import com.isaactai.cloudnativeweb.user.dto.UserCreateRequest;
 import com.isaactai.cloudnativeweb.user.dto.UserResponse;
+import com.isaactai.cloudnativeweb.user.dto.UserUpdateRequest;
+import com.isaactai.cloudnativeweb.user.exception.BadRequestException;
 import com.isaactai.cloudnativeweb.user.exception.DuplicateEmailException;
+import com.isaactai.cloudnativeweb.user.exception.ForbiddenException;
+import com.isaactai.cloudnativeweb.user.exception.NotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.nio.file.AccessDeniedException;
+import java.time.Instant;
 
 /**
  * @author tisaac
@@ -44,5 +52,39 @@ public class UserService {
                 saved.getCreateTime(),
                 saved.getUpdatedTime()
         );
+    }
+
+    @Transactional
+    public void updateSelf(int userId, String authUsername, UserUpdateRequest req) {
+        // find curr login user
+        User me = userRepo.findByUsername(authUsername)
+                .orElseThrow(() -> new NotFoundException("auth user not found"));
+
+        // confirm only can modify itself
+        if (me.getId() != userId) {
+            throw new ForbiddenException("Action Forbidden");
+        }
+
+        // at least one field need to be updated
+        boolean changed = false;
+        if (req.firstName() != null) {
+            me.setFirstName(req.firstName());
+            changed = true;
+        }
+        if (req.lastName() != null) {
+            me.setLastName(req.lastName());
+            changed = true;
+        }
+        if (req.password() != null) {
+            me.setPwdHash(encoder.encode(req.password()));
+            changed = true;
+        }
+
+        if (!changed) {
+            throw new BadRequestException("No updatable fields provided");
+        }
+
+        // save it back to db
+        userRepo.save(me);
     }
 }

@@ -40,6 +40,6 @@ public class User {
     private Instant createTime;
 
     @UpdateTimestamp
-    @Column(name = "account_updated", nullable = false, updatable = false)
+    @Column(name = "account_updated", nullable = false)
     private Instant updatedTime;
 }
