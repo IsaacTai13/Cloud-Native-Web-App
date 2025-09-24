@@ -2,6 +2,8 @@ package com.isaactai.cloudnativeweb.user;
 
 import com.isaactai.cloudnativeweb.user.dto.UserCreateRequest;
 import com.isaactai.cloudnativeweb.user.dto.UserResponse;
+import com.isaactai.cloudnativeweb.user.exception.DuplicateEmailException;
+import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +20,13 @@ public class UserService {
         this.encoder = encoder;
     }
 
+    @Transactional
     public UserResponse createUser(UserCreateRequest req) {
+        // 400 if duplicate email
+        if (userRepo.existsByUsername(req.username())) {
+            throw new DuplicateEmailException();
+        }
+
         User newUser = User.builder()
                 .firstName(req.firstName())
                 .lastName(req.lastName())
