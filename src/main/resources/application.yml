@@ -21,6 +21,9 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:/db/changelog/db.changelog-master.yaml
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
 server:
   port: ${SERVER_PORT:8081}
   error:
