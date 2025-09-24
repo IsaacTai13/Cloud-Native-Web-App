@@ -22,7 +22,6 @@ public class UserController {
         this.userService = userService;
     }
 
-//    @RequestMapping(value = "/user", method = RequestMethod.POST)
     @PostMapping()
     public ResponseEntity<UserResponse> create(@Valid @RequestBody UserCreateRequest req) {
         UserResponse created = userService.createUser(req);
@@ -37,5 +36,14 @@ public class UserController {
     ) {
         userService.updateSelf(userId, auth.getName(), req);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserResponse> getUser(
+            @PathVariable int userId,
+            Authentication auth) {
+
+        UserResponse me = userService.getSelf(userId, auth.getName());
+        return ResponseEntity.ok(me);
     }
 }

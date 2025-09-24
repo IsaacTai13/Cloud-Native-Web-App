@@ -58,7 +58,7 @@ public class UserService {
     public void updateSelf(int userId, String authUsername, UserUpdateRequest req) {
         // find curr login user
         User me = userRepo.findByUsername(authUsername)
-                .orElseThrow(() -> new NotFoundException("auth user not found"));
+                .orElseThrow(() -> new NotFoundException("user not found"));
 
         // confirm only can modify itself
         if (me.getId() != userId) {
@@ -86,5 +86,23 @@ public class UserService {
 
         // save it back to db
         userRepo.save(me);
+    }
+
+    public UserResponse getSelf(int userId, String authUsername) {
+        User me = userRepo.findByUsername(authUsername)
+                .orElseThrow(() -> new NotFoundException("auth user not found"));
+
+        if (me.getId() != userId) {
+            throw new ForbiddenException("Action Forbidden");
+        }
+
+        return new UserResponse(
+                me.getId(),
+                me.getFirstName(),
+                me.getUsername(),
+                me.getLastName(),
+                me.getCreateTime(),
+                me.getUpdatedTime()
+        );
     }
 }
