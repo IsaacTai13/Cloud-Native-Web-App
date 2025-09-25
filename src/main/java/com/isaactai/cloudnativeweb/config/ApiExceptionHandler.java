@@ -35,16 +35,6 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(status).body(body);
     }
 
-    // DTO contains disallowed fields
-    @ExceptionHandler(UnrecognizedPropertyException.class)
-    public ResponseEntity<ApiErrorResponse> handleUnknownField(
-            UnrecognizedPropertyException ex,
-            HttpServletRequest req) {
-        String msg = "Unrecognized field " + ex.getPropertyName();
-        return ResponseEntity.badRequest().body(
-                ApiErrorResponse.of(400, "BAD_REQUEST", msg, req.getRequestURI()));
-    }
-
     // @Valid validation failed
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(
@@ -66,8 +56,17 @@ public class ApiExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> handleBadJson(
             HttpMessageNotReadableException ex, HttpServletRequest req) {
+
+        Throwable cause = ex.getMostSpecificCause();
+
+        // DTO contains disallowed fields
+        if (cause instanceof UnrecognizedPropertyException up) {
+            String msg = "Unrecognized field " + up.getPropertyName();
+            return ResponseEntity.badRequest().body(
+                    ApiErrorResponse.of(400, "BAD_REQUEST", msg, req.getRequestURI()));
+        }
+
         String msg = "Malformed JSON";
-        var cause = ex.getCause();
         if (cause instanceof com.fasterxml.jackson.core.JsonParseException jpe) {
             msg = "Malformed JSON at line %d, column %d"
                     .formatted(jpe.getLocation().getLineNr(), jpe.getLocation().getColumnNr());
