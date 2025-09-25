@@ -57,4 +57,10 @@ public class ProductController {
     ) {
         service.deleteProduct(productId, auth.getName());
     }
+
+    @GetMapping("/{productId}")
+    @ResponseStatus(HttpStatus.OK)
+    public ProductResponse getProduct(@PathVariable Long productId) {
+        return service.getProduct(productId);
+    }
 }

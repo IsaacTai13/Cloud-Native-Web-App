@@ -24,8 +24,7 @@ public class ProductService {
 
     @Transactional
     public ProductResponse createForUser(ProductCreateRequest req, String username) {
-        User user = userRepo.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        User user = getUser(username);
 
         if (repo.existsBySku(req.sku())) {
             throw new DuplicateSkuException();
@@ -79,6 +78,14 @@ public class ProductService {
     public void deleteProduct(Long productId, String username) {
         Product p = locateOwnedProduct(productId, username);
         repo.delete(p);
+    }
+
+    @Transactional
+    public ProductResponse getProduct(Long productId) {
+        Product p = repo.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Product not found"));
+
+        return ProductMapper.toResponse(p);
     }
 
     public User getUser(String username) {

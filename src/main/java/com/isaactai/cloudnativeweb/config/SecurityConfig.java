@@ -28,6 +28,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/healthz", "/api/health").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/user").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v1/product/{productId}").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults())
