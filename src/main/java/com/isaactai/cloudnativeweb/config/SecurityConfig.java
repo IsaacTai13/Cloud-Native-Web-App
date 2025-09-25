@@ -26,9 +26,9 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/healthz", "/api/health").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/v1/user").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/v1/product/{productId}").permitAll()
+                        .requestMatchers("/healthz", "/api/health").anonymous()
+                        .requestMatchers(HttpMethod.POST, "/v1/user").anonymous()
+                        .requestMatchers(HttpMethod.GET, "/v1/product/{productId}").anonymous()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults())

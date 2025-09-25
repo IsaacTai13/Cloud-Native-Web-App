@@ -1,15 +1,14 @@
 package com.isaactai.cloudnativeweb.health;
 
+import com.isaactai.cloudnativeweb.common.exception.BadRequestException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * @author tisaac
@@ -28,7 +27,14 @@ public class HealthController {
     // Inserts a new record into the database each time.
     // Does not return any response body.
     @GetMapping("/healthz")
-    public ResponseEntity<Void> healthz(HttpServletRequest request) {
+    public ResponseEntity<Void> healthz(
+            HttpServletRequest request,
+            @RequestParam Map<String, String> queryParams
+    ) {
+        if (!queryParams.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
         try {
             if (request.getInputStream().read() != -1) {
                 return ResponseEntity.badRequest().build();
