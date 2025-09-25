@@ -1,22 +1,44 @@
 # Cloud-Native Web App
 
-## Tech Stack
+A Spring Boot–based cloud-native web application with PostgreSQL persistence, Liquibase schema migrations, and secured REST APIs for User and Product management.
 
-- Java (17+)
-- Spring Boot
-- Spring Data JPA (with Hibernate)
-- Liquibase (for schema migrations)
-- PostgreSQL 16
+---
 
 ## Prerequisites
 
-- Install PostgreSQL (v16+ recommended).
-- IDE: IntelliJ IDEA (recommended).
-- `.env` file in the project root directory
+- **Java**: JDK 17+
+- **Maven**: Included via `./mvnw`
+- **PostgreSQL**: v16+ (local or via Docker)
+- **Docker & Docker Compose**: For containerized database setup
+- **IDE**: IntelliJ IDEA (recommended)
+
+---
+
+## Framework & Dependencies
+
+Defined in `pom.xml`:
+
+- **Spring Boot 3.5.5**
+    - `spring-boot-starter-web` (REST APIs)
+    - `spring-boot-starter-data-jpa` (JPA/Hibernate ORM)
+    - `spring-boot-starter-security` (authentication & authorization)
+    - `spring-boot-starter-validation` (DTO validation)
+- **Liquibase**: Database schema migrations
+- **PostgreSQL**: Relational database
+- **Lombok**: Boilerplate code reduction
+- **spring-boot-starter-test**: Testing utilities (JUnit, Mockito, etc.)
+
+---
+
+## 👾 Environment Configuration
 
 ### Env variable
 
-1. Run the following cmd to create a `.env` file in the project root directory (same level as `pom.xml`): 💡If you don’t have Git installed, just create the `.env` file manually in the project root.
+The application loads environment variables from a `.env` file in the project root (same level as `pom.xml`).
+
+Create `.env`:
+
+1. Run the following cmd in the project root directory (same level as `pom.xml`)
 
     ```shell
     cd "$(git rev-parse --show-toplevel)" && cat > .env <<'EOF'
@@ -38,7 +60,7 @@
 
 2. Edit the .env file to match your local DB configuration.
 
-### Install PostgreSQL using Docker
+### PostgreSQL with Docker
 
 Docker Compose automatically loads environment variables from a .env file located in the project root directory. Make sure you create this file before starting the containers.
 
@@ -71,18 +93,46 @@ Docker Compose automatically loads environment variables from a .env file locate
     ```shell
     docker compose up -d
     ```
+   
+---
 
-## Run the Application
+## 🚀 Build & Run
 
-Build & start the app:
+Build the project:
 
 ```shell
 ./mvnw clean package
+```
+
+Run the application:
+
+```shell
 ./mvnw spring-boot:run
 ```
 
+The app will start at: http://localhost:8081
 
-## Health Check Endpoints
+---
+
+## 📡 API Endpoints
+
+### User APIs
+
+- POST /v1/user – Create user (No Auth)
+- PUT /v1/user/{id} – Update user (Requires Auth)
+- GET /v1/user/{id} – Get user (Requires Auth)
+
+### Product APIs
+
+- GET /v1/products/{id} – List products (No Auth)
+- POST /v1/products – Create product (Requires Auth)
+- PUT /v1/products/{id} – Update product (Requires Auth)
+- PATCH /v1/products/{id} – Partially update product (Requires Auth)
+- DELETE /v1/products/{id} – Delete product (Requires Auth)
+
+---
+
+## 💊 Health Check Endpoints
 
 1. `/healthz`
    - Method: GET
@@ -96,13 +146,6 @@ Build & start the app:
      - 400 Bad Request: Request contains a body (not allowed)
      - 405 Method Not Allowed: Non-GET method used
      - 503 Service Unavailable: DB unreachable or insert failed
-   - Commands:
-     - 200: `curl -vvvv http://localhost:8081/healthz`
-     - 400: `curl -vvvv http://localhost:8081/healthz -X GET -H "Content-Type: application/json" -d '{"test":"value"}'`
-     - 405: `curl -vvvv -XPUT http://localhost:8081/healthz`
-     - 503:
-       - stop the db: `docker compose stop postgres`
-       - `curl -vvvv http://localhost:8081/healthz`
 2. `/api/health`
    - Method: GET
    - Purpose: Detailed health probe
@@ -114,3 +157,21 @@ Build & start the app:
      - 400 Bad Request: Request contains a body
      - 405 Method Not Allowed: Non-GET method used
      - 503 Service Unavailable: Dependency failure (with error details)
+
+---
+
+## 📦 Deployment
+
+Ensure .env file is configured correctly
+
+Build the JAR:
+
+```shell
+./mvnw clean package
+```
+
+Run with:
+
+```shell
+java -jar target/Cloud-Native-Web-0.0.1-SNAPSHOT.jar
+```
