@@ -9,6 +9,7 @@ import com.isaactai.cloudnativeweb.user.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.LocaleResolver;
 
 /**
  * @author tisaac
@@ -19,6 +20,7 @@ public class ProductService {
 
     private final ProductRepository repo;
     private final UserRepository userRepo;
+    private final LocaleResolver localeResolver;
 
     @Transactional
     public ProductResponse createForUser(ProductCreateRequest req, String username) {
@@ -44,19 +46,9 @@ public class ProductService {
 
     @Transactional
     public void updateProduct(Long productId, String username, ProductUpdateRequest req) {
-        User user = userRepo.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        Product p = locateOwnedProduct(productId, username);
 
-        Product p = repo.findById(productId)
-                .orElseThrow(() -> new NotFoundException("Product not found"));
-
-        if (!p.getOwnerUserId().equals(user.getId())) {
-            throw new ForbiddenException("You cannot update this product");
-        }
-
-        if (!p.getSku().equals(req.sku()) && repo.existsBySku(req.sku())) {
-            throw new DuplicateSkuException();
-        }
+        ensureSkuUnique(req.sku(), p.getId(), p.getSku());
 
         p.setName(req.name());
         p.setDescription(req.description());
@@ -69,39 +61,45 @@ public class ProductService {
 
     @Transactional
     public void patchProduct(Long productId, String username, ProductPatchRequest req) {
-        User user = userRepo.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        Product p = locateOwnedProduct(productId, username);
 
+        if (req.name() != null)         p.setName(req.name());
+        if (req.description() != null)  p.setDescription(req.description());
+        if (req.manufacturer() != null) p.setManufacturer(req.manufacturer());
+        if (req.quantity() != null)     p.setQuantity(req.quantity());
+        if (req.sku() != null) {
+            ensureSkuUnique(req.sku(), p.getId(), p.getSku());
+            p.setSku(req.sku());
+        }
+
+        repo.save(p);
+    }
+
+    @Transactional
+    public void deleteProduct(Long productId, String username) {
+        Product p = locateOwnedProduct(productId, username);
+        repo.delete(p);
+    }
+
+    public User getUser(String username) {
+        return userRepo.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+    }
+
+    public Product locateOwnedProduct(Long productId, String username) {
+        User user = getUser(username);
         Product p = repo.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
 
         if (!p.getOwnerUserId().equals(user.getId())) {
             throw new ForbiddenException("You cannot update this product");
         }
+        return p;
+    }
 
-        if (req.name() != null) {
-            p.setName(req.name());
+    private void ensureSkuUnique(String newSku, Long currentId, String oldSku) {
+        if (newSku != null && !newSku.equals(oldSku) && repo.existsBySkuAndIdNot(newSku, currentId)) {
+            throw new DuplicateSkuException();
         }
-
-        if (req.description() != null) {
-            p.setDescription(req.description());
-        }
-
-        if (req.sku() != null && !req.sku().equals(p.getSku())) {
-            if (repo.existsBySku(req.sku())) {
-                throw new DuplicateSkuException();
-            }
-            p.setSku(req.sku());
-        }
-
-        if (req.manufacturer() != null) {
-            p.setManufacturer(req.manufacturer());
-        }
-
-        if (req.quantity() != null) {
-            p.setQuantity(req.quantity());
-        }
-
-        repo.save(p);
     }
 }

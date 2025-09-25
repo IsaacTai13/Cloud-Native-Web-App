@@ -48,4 +48,13 @@ public class ProductController {
     ) {
         service.patchProduct(productId, auth.getName(), req);
     }
+
+    @DeleteMapping("/{productId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProduct(
+            @PathVariable Long productId,
+            Authentication auth
+    ) {
+        service.deleteProduct(productId, auth.getName());
+    }
 }
