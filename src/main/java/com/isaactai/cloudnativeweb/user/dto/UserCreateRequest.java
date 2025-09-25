@@ -26,5 +26,9 @@ public record UserCreateRequest (
 
         @NotBlank(message = "Username (email) is required")
         @Email(message = "Username must be a valid email address")
+        @Pattern(
+                regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
+                message = "Username must be a valid email address"
+        )
         String username
 ) {}
