@@ -3,3 +3,5 @@ databaseChangeLog:
       file: db/changelog/changes/001-create-health-checks.yml
   - include:
       file: db/changelog/changes/002-create-users.yml
+  - include:
+      file: db/changelog/changes/003-create-products.yml
