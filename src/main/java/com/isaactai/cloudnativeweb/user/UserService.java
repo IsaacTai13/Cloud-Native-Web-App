@@ -3,17 +3,13 @@ package com.isaactai.cloudnativeweb.user;
 import com.isaactai.cloudnativeweb.user.dto.UserCreateRequest;
 import com.isaactai.cloudnativeweb.user.dto.UserResponse;
 import com.isaactai.cloudnativeweb.user.dto.UserUpdateRequest;
-import com.isaactai.cloudnativeweb.user.exception.BadRequestException;
+import com.isaactai.cloudnativeweb.common.exception.BadRequestException;
 import com.isaactai.cloudnativeweb.user.exception.DuplicateEmailException;
-import com.isaactai.cloudnativeweb.user.exception.ForbiddenException;
-import com.isaactai.cloudnativeweb.user.exception.NotFoundException;
+import com.isaactai.cloudnativeweb.common.exception.ForbiddenException;
+import com.isaactai.cloudnativeweb.common.exception.NotFoundException;
 import jakarta.transaction.Transactional;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.nio.file.AccessDeniedException;
-import java.time.Instant;
 
 /**
  * @author tisaac

@@ -1,13 +1,28 @@
 package com.isaactai.cloudnativeweb.product;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.isaactai.cloudnativeweb.product.dto.ProductCreateRequest;
+import com.isaactai.cloudnativeweb.product.dto.ProductResponse;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author tisaac
  */
 @RestController
-@RequestMapping("/v1/products")
+@RequestMapping("/v1/product")
+@RequiredArgsConstructor
 public class ProductController {
 
+    private final ProductService service;
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ProductResponse create(
+            @Valid @RequestBody ProductCreateRequest req,
+            Authentication auth) {
+        return service.createForUser(req, auth.getName());
+    }
 }

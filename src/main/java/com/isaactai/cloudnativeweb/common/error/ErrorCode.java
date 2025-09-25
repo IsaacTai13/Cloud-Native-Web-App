@@ -5,6 +5,7 @@ package com.isaactai.cloudnativeweb.common.error;
  */
 public enum ErrorCode {
     DUPLICATE_EMAIL,
+    DUPLICATE_SKU,
     NOT_FOUND,
     UNAUTHORIZED,
     FORBIDDEN,

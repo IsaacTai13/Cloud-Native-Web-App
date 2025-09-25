@@ -1,4 +1,4 @@
-package com.isaactai.cloudnativeweb.user.exception;
+package com.isaactai.cloudnativeweb.common.exception;
 
 import com.isaactai.cloudnativeweb.common.error.BaseApiException;
 import com.isaactai.cloudnativeweb.common.error.ErrorCode;

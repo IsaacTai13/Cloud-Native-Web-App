@@ -8,7 +8,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 
 /**
  * @author tisaac
@@ -47,11 +47,11 @@ public class Product {
     // readOnly fields handled by server
     @CreationTimestamp
     @Column(name = "date_added", nullable = false, updatable = false)
-    private OffsetDateTime dateAdded;
+    private Instant dateAdded;
 
     @UpdateTimestamp
     @Column(name = "date_last_updated", nullable = false)
-    private OffsetDateTime dateLastUpdated;
+    private Instant dateLastUpdated;
 
     @Column(name = "owner_user_id", nullable = false, updatable = false)
     private Long ownerUserId;

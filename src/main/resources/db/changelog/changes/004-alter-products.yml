@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-alter-products.yml
+      author: isaac
+      changes:
+        - modifyDataType:
+            tableName: products
+            columnName: date_added
+            newDataType: TIMESTAMPTZ
+        - modifyDataType:
+            tableName: products
+            columnName: date_last_updated
+            newDataType: TIMESTAMPTZ
+        - dropDefaultValue:
+            tableName: products
+            columnName: date_added
+        - addDefaultValue:
+            tableName: products
+            columnName: date_added
+            defaultValueComputed: NOW()
+        - dropDefaultValue:
+            tableName: products
+            columnName: date_last_updated
+        - addDefaultValue:
+            tableName: products
+            columnName: date_last_updated
+            defaultValueComputed: NOW()
