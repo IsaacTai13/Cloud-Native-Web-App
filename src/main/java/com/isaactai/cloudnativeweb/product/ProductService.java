@@ -2,11 +2,8 @@ package com.isaactai.cloudnativeweb.product;
 
 import com.isaactai.cloudnativeweb.common.exception.ForbiddenException;
 import com.isaactai.cloudnativeweb.common.exception.NotFoundException;
-import com.isaactai.cloudnativeweb.product.dto.ProductCreateRequest;
-import com.isaactai.cloudnativeweb.product.dto.ProductResponse;
-import com.isaactai.cloudnativeweb.product.dto.ProductUpdateRequest;
+import com.isaactai.cloudnativeweb.product.dto.*;
 import com.isaactai.cloudnativeweb.product.exception.DuplicateSkuException;
-import com.isaactai.cloudnativeweb.product.dto.ProductMapper;
 import com.isaactai.cloudnativeweb.user.User;
 import com.isaactai.cloudnativeweb.user.UserRepository;
 import jakarta.transaction.Transactional;
@@ -66,6 +63,44 @@ public class ProductService {
         p.setSku(req.sku());
         p.setManufacturer(req.manufacturer());
         p.setQuantity(req.quantity());
+
+        repo.save(p);
+    }
+
+    @Transactional
+    public void patchProduct(Long productId, String username, ProductPatchRequest req) {
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        Product p = repo.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Product not found"));
+
+        if (!p.getOwnerUserId().equals(user.getId())) {
+            throw new ForbiddenException("You cannot update this product");
+        }
+
+        if (req.name() != null) {
+            p.setName(req.name());
+        }
+
+        if (req.description() != null) {
+            p.setDescription(req.description());
+        }
+
+        if (req.sku() != null && !req.sku().equals(p.getSku())) {
+            if (repo.existsBySku(req.sku())) {
+                throw new DuplicateSkuException();
+            }
+            p.setSku(req.sku());
+        }
+
+        if (req.manufacturer() != null) {
+            p.setManufacturer(req.manufacturer());
+        }
+
+        if (req.quantity() != null) {
+            p.setQuantity(req.quantity());
+        }
 
         repo.save(p);
     }

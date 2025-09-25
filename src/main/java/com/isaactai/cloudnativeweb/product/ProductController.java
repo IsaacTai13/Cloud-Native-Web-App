@@ -1,6 +1,7 @@
 package com.isaactai.cloudnativeweb.product;
 
 import com.isaactai.cloudnativeweb.product.dto.ProductCreateRequest;
+import com.isaactai.cloudnativeweb.product.dto.ProductPatchRequest;
 import com.isaactai.cloudnativeweb.product.dto.ProductResponse;
 import com.isaactai.cloudnativeweb.product.dto.ProductUpdateRequest;
 import jakarta.validation.Valid;
@@ -36,5 +37,15 @@ public class ProductController {
             Authentication auth
     ) {
         service.updateProduct(productId, auth.getName(), req);
+    }
+
+    @PatchMapping("/{productId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void patchProduct(
+            @PathVariable Long productId,
+            @Valid @RequestBody ProductPatchRequest req,
+            Authentication auth
+    ) {
+        service.patchProduct(productId, auth.getName(), req);
     }
 }

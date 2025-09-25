@@ -7,11 +7,12 @@ public record ProductUpdateRequest(
         @NotBlank String description,
 
         @NotBlank
-        @Pattern(regexp = "^[a-zA-Z0-9]{6,18}$", message = "SKU must be 6-12 letters or digits")
+        @Pattern(regexp = "^[a-zA-Z0-9-_.]{6,64}$",
+                message = "sku must be letters/digits/-_.")
         String sku,
 
         @NotBlank
-        @Pattern(regexp = "^[A-Za-z0-9 .,&-]{2,100}$", message = "Manufacturer must be 2-100 chars, valid symbols only")
+        @Size(min = 1, max = 255, message = "manufacturer length 1-255")
         String manufacturer,
 
         @NotNull
