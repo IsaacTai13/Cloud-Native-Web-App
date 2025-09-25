@@ -2,6 +2,7 @@ package com.isaactai.cloudnativeweb.product;
 
 import com.isaactai.cloudnativeweb.product.dto.ProductCreateRequest;
 import com.isaactai.cloudnativeweb.product.dto.ProductResponse;
+import com.isaactai.cloudnativeweb.product.dto.ProductUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,18 @@ public class ProductController {
     @ResponseStatus(HttpStatus.CREATED)
     public ProductResponse create(
             @Valid @RequestBody ProductCreateRequest req,
-            Authentication auth) {
+            Authentication auth
+    ) {
         return service.createForUser(req, auth.getName());
+    }
+
+    @PutMapping("/{productId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateProduct(
+            @PathVariable Long productId,
+            @Valid @RequestBody ProductUpdateRequest req,
+            Authentication auth
+    ) {
+        service.updateProduct(productId, auth.getName(), req);
     }
 }
