@@ -89,6 +89,39 @@ public class UserControllerTest extends BaseApiTest {
             assertThat("account_created should equal account_updated on first creation",
                     updated, equalTo(created));
         }
+
+        @Test
+        void createUser_missingRequiredFields_returns400() {
+            String json = """
+            { "first_name": "OnlyFirst" }
+            """;
+
+            given()
+                    .contentType("application/json")
+                    .body(json)
+                    .when()
+                    .post("/v1/user")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(400)
+                    .body("message", containsString("required"));
+        }
+
+        @Test
+        void createUser_duplicateUsername_returns400() {
+            String username = "dup" + System.currentTimeMillis() + "@example.com";
+            String body = userJson("First", "Last", username, "StrongPwd$");
+
+            // pass the first time
+            given().contentType("application/json").body(body)
+                    .when().post("/v1/user")
+                    .then().statusCode(201);
+
+            // failed on second time
+            given().contentType("application/json").body(body)
+                    .when().post("/v1/user")
+                    .then().statusCode(400);
+        }
     }
 
     @Nested
@@ -111,6 +144,29 @@ public class UserControllerTest extends BaseApiTest {
                     .body("$", not(hasKey("password")))
                     .body("account_created", notNullValue())
                     .body("account_updated", notNullValue());
+        }
+
+        @Test
+        void getById_withoutAuth_returns401() {
+            given()
+                    .accept("application/json")
+                    .when()
+                    .get("/v1/user/{id}", userId)
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(401);
+        }
+
+        @Test
+        void getById_withWrongPassword_returns401() {
+            given()
+                    .auth().preemptive().basic(username, "WrongPwd$")
+                    .accept("application/json")
+                    .when()
+                    .get("/v1/user/{id}", userId)
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(401);
         }
     }
 
@@ -136,6 +192,8 @@ public class UserControllerTest extends BaseApiTest {
                     .log().ifValidationFails()
                     .statusCode(204);
         }
+
+
     }
 
     private static String userJson(String first, String last, String email, String pwd) {

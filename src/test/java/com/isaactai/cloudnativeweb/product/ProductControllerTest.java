@@ -41,7 +41,7 @@ public class ProductControllerTest extends BaseApiTest {
 
         // create product
         bodyJson = productJson("MacBook Pro 14", "14-inch, M3 Pro",
-                "sku", "Apple", 2);
+                null, "Apple", 2);
 
         res = given()
                 .auth().basic(username, pwd)
@@ -64,7 +64,7 @@ public class ProductControllerTest extends BaseApiTest {
         @Test
         void createProduct_success() {
             String bodyJson = productJson("MacBook Pro", "16-inch, M2 Pro",
-                    "sku", "Apple", 5);
+                    null, "Apple", 5);
 
             given()
                     .auth().basic(username, pwd)
@@ -81,6 +81,36 @@ public class ProductControllerTest extends BaseApiTest {
                     .body("quantity", equalTo(5))
                     .body("owner_user_id", equalTo(userId.intValue()));
         }
+
+        @Test
+        void createProduct_invalidQuantity_returns400() {
+            String json = productJson("BadProduct", "Invalid Quantity", null, "Microsoft", 111);
+
+            given()
+                    .auth().basic(username, pwd)
+                    .contentType("application/json")
+                    .body(json)
+                    .when()
+                    .post("/v1/product")
+                    .then()
+                    .statusCode(400);
+        }
+
+        @Test
+        void createProduct_duplicateSku_returns400() {
+            String dupSku = "sku-" + System.currentTimeMillis();
+            String body1 = productJson("BadProduct", "Invalid Quantity", dupSku, "Microsoft", 11);
+            given().auth().basic(username, pwd)
+                    .contentType("application/json").body(body1)
+                    .when().post("/v1/product")
+                    .then().statusCode(201);
+
+            String body2 = productJson("iPhone2", "Another", dupSku, "Apple", 2);
+            given().auth().basic(username, pwd)
+                    .contentType("application/json").body(body2)
+                    .when().post("/v1/product")
+                    .then().statusCode(400);
+        }
     }
 
     @Nested
@@ -88,14 +118,36 @@ public class ProductControllerTest extends BaseApiTest {
         @Test
         void getProductById_success() {
             given()
-                    .when()
                     .accept("application/json")
+                    .when()
                     .get("/v1/product/{id}", productId)
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
                     .body("id", equalTo(productId.intValue()))
                     .body("name", equalTo("MacBook Pro 14"));
+        }
+
+        @Test
+        void getProductById_withInvalidAuth_returns401() {
+            given()
+                    .auth().preemptive().basic(username, "wrongPwd")
+                    .accept("application/json")
+                    .when()
+                    .get("/v1/product/{id}", productId)
+                    .then()
+                    .statusCode(401);
+        }
+
+        @Test
+        void getProductById_withValidAuth_returns403() {
+            given()
+                    .auth().preemptive().basic(username, pwd)
+                    .accept("application/json")
+                    .when()
+                    .get("/v1/product/{id}", productId)
+                    .then()
+                    .statusCode(403);
         }
     }
 
@@ -105,7 +157,7 @@ public class ProductControllerTest extends BaseApiTest {
         void updateProduct_fullPut_success() {
             String prodName = "Iphone 17 pro";
             String newProductJson = productJson(prodName, "ios 26",
-                    "sku", "Apple", 10);
+                    null, "Apple", 10);
 
             given()
                     .auth().basic(username, pwd)
@@ -156,6 +208,20 @@ public class ProductControllerTest extends BaseApiTest {
                     .body("id", equalTo(productId.intValue()))
                     .body("quantity", equalTo(quantity));
         }
+
+        @Test
+        void updateProduct_withoutAuth_returns401() {
+            String body = productJson("NoAuth", "No Token", "", "Apple", 1);
+
+            given()
+                    .contentType("application/json")
+                    .body(body)
+                    .when()
+                    .put("/v1/product/{id}", productId)
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(401);
+        }
     }
 
     private static String userJson(String first, String last, String email, String pwd) {
@@ -170,6 +236,10 @@ public class ProductControllerTest extends BaseApiTest {
         }
 
     private static String productJson(String name, String desc, String sku, String manufa, int quantity) {
+        String finalSku = (sku == null || sku.isEmpty())
+                ? "sku-" + System.currentTimeMillis()
+                : sku;
+
         return """
                 {
                   "name": "%s",
@@ -178,6 +248,6 @@ public class ProductControllerTest extends BaseApiTest {
                   "manufacturer": "%s",
                   "quantity": %s
                 }
-                """.formatted(name, desc, sku + "-" + System.currentTimeMillis(), manufa, quantity);
+                """.formatted(name, desc, finalSku, manufa, quantity);
     }
 }
