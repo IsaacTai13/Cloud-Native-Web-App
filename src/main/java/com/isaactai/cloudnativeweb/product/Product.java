@@ -45,14 +45,24 @@ public class Product {
     private Integer quantity;
 
     // readOnly fields handled by server
-    @CreationTimestamp
     @Column(name = "date_added", nullable = false, updatable = false)
     private Instant dateAdded;
 
-    @UpdateTimestamp
     @Column(name = "date_last_updated", nullable = false)
     private Instant dateLastUpdated;
 
     @Column(name = "owner_user_id", nullable = false, updatable = false)
     private Long ownerUserId;
+
+    @PrePersist
+    void onCreate() {
+        Instant now = Instant.now();
+        this.dateAdded = now;
+        this.dateLastUpdated   = now;
+    }
+
+    @PreUpdate
+    void onUpdate() {
+        this.dateLastUpdated = Instant.now();
+    }
 }

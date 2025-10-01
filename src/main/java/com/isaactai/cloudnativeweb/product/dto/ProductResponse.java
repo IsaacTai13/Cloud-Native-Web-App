@@ -1,5 +1,7 @@
 package com.isaactai.cloudnativeweb.product.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.Instant;
 
 /**
@@ -12,7 +14,13 @@ public record ProductResponse (
     String sku,
     String manufacturer,
     Integer quantity,
+
+    @JsonProperty("date_added")
     Instant dateAdded,
+
+    @JsonProperty("date_last_updated")
     Instant dateLastUpdated,
+
+    @JsonProperty("owner_user_id")
     Long ownerUserId
 ) {}
