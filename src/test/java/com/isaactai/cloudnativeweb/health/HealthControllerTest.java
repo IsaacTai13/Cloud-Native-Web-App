@@ -14,7 +14,7 @@ public class HealthControllerTest extends BaseApiTest {
 
     @Test
     @DisplayName("Get /healthz -> 200 with empty body, no headers, no query")
-    public void healthz_ok_noBody_noQuery_noAuth() {
+    void healthz_ok_noBody_noQuery_noAuth() {
         var resp = given()
                 .when()
                     .get("/healthz")

@@ -124,11 +124,11 @@ The app will start at: http://localhost:8081
 
 ### Product APIs
 
-- GET /v1/products/{id} – List products (No Auth)
-- POST /v1/products – Create product (Requires Auth)
-- PUT /v1/products/{id} – Update product (Requires Auth)
-- PATCH /v1/products/{id} – Partially update product (Requires Auth)
-- DELETE /v1/products/{id} – Delete product (Requires Auth)
+- GET /v1/product/{id} – List products (No Auth)
+- POST /v1/product – Create product (Requires Auth)
+- PUT /v1/product/{id} – Update product (Requires Auth)
+- PATCH /v1/product/{id} – Partially update product (Requires Auth)
+- DELETE /v1/product/{id} – Delete product (Requires Auth)
 
 ---
 
