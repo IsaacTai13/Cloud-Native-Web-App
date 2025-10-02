@@ -26,7 +26,11 @@ Defined in `pom.xml`:
 - **Liquibase**: Database schema migrations
 - **PostgreSQL**: Relational database
 - **Lombok**: Boilerplate code reduction
-- **spring-boot-starter-test**: Testing utilities (JUnit, Mockito, etc.)
+- **Testing stack**:
+  - **spring-boot-starter-test**: Testing utilities (JUnit, Mockito, etc.)
+  - **junit-jupiter** (API, Engine, Params)
+  - **rest-assured** & **json-schema-validator** – API integration tests
+  - **hamcrest** – Matcher library for assertions
 
 ---
 
@@ -157,6 +161,44 @@ The app will start at: http://localhost:8081
      - 400 Bad Request: Request contains a body
      - 405 Method Not Allowed: Non-GET method used
      - 503 Service Unavailable: Dependency failure (with error details)
+
+---
+
+## 🧪 Testing
+
+The project includes unit tests and integration tests:
+
+- Integration tests: End-to-end API validation with REST Assured (positive, negative, and edge cases).
+  - Use Spring Boot Test with a dedicated application-ci.yml.
+  - Automatically runs Liquibase migrations against a real PostgreSQL instance.
+  - Covers user and product API workflows, as well as health check endpoints.
+
+Run Locally
+
+```shell
+./mvnw clean verify
+```
+
+Reports are generated under:
+
+- target/surefire-reports/
+- target/failsafe-reports/
+
+---
+
+## ⚙️ Continuous Integration (CI)
+
+This repository uses GitHub Actions for CI:
+- Workflow: .github/workflows/ci.yml
+- Trigger: Runs on every pull request to main
+- Pipeline includes:
+  1. Checkout code and set up JDK 17
+  2. Start a Postgres 16 service
+  3. Run Liquibase migrations automatically on app startup
+  4. Execute integration tests with Maven
+  5. Upload test reports as GitHub artifacts for debugging
+
+👉 CI ensures that all tests pass before a PR can be merged into main.
 
 ---
 

@@ -5,7 +5,13 @@ import io.restassured.response.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 /**
@@ -110,6 +116,51 @@ public class ProductControllerTest extends BaseApiTest {
                     .contentType("application/json").body(body2)
                     .when().post("/v1/product")
                     .then().statusCode(400);
+        }
+
+        @Test
+        void createManyProducts_bulk_shouldRemainFastEnough() {
+            long start = System.currentTimeMillis();
+            int total = 50;
+            for (int i = 0; i < total; i++) {
+                String body = productJson("Bulk" + i, "d", null, "M", 1);
+                given().auth().preemptive().basic(username, pwd).contentType("application/json").body(body)
+                        .when().post("/v1/product")
+                        .then().statusCode(201);
+            }
+            long elapsed = System.currentTimeMillis() - start;
+            assertThat("bulk create too slow", elapsed, lessThan(10_000L));
+        }
+
+        @Test
+        void createProducts_concurrent_requests() throws Exception {
+            int thread = 10;
+            var exec = Executors.newFixedThreadPool(thread);
+            var latch = new CountDownLatch(thread);
+            var errors = new ConcurrentLinkedQueue<Integer>();
+
+            for (int i = 0; i < thread; i++) {
+                final int idx = i;
+                exec.submit(() -> {
+                    try {
+                        String sku = "con-" + idx + "-" + java.util.UUID.randomUUID();
+                        String body = productJson("CProd", "bulk", sku, "Acme", 1);
+                        int status = given()
+                                .auth().preemptive().basic(username, pwd)
+                                .contentType("application/json").body(body)
+                                .when().post("/v1/product")
+                                .then().extract().statusCode();
+
+                        if (status != 201) errors.add(status);
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
+
+            latch.await();
+            exec.shutdown();
+            assertThat("All concurrent creations should be 201, got: " + errors, errors.isEmpty(), is(true));
         }
     }
 
@@ -221,6 +272,20 @@ public class ProductControllerTest extends BaseApiTest {
                     .then()
                     .log().ifValidationFails()
                     .statusCode(401);
+        }
+    }
+
+    @Nested
+    class DeleteProduct {
+        @Test
+        void deleteProduct_thenGetShould404() {
+            given().auth().preemptive().basic(username, pwd)
+                    .when().delete("/v1/product/{id}", productId)
+                    .then().statusCode(204);
+
+            given()
+                    .when().get("/v1/product/{id}", productId)
+                    .then().statusCode(404);
         }
     }
 
