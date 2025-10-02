@@ -5,9 +5,28 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        ports:
+          - "5432:5432"
+        env:
+          POSTGRES_USER: ${{ vars.DB_USERNAME }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          POSTGRES_DB: ${{ vars.DB_NAME }}
+        options: >-
+          --health-cmd="pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=12
 
     steps:
       - name: Checkout Code
@@ -18,6 +37,31 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'maven'
 
-      - name: Install dependencies and run tests
-        run: mvn test
+      - name: Wait for Postgres to be ready
+        run: |
+          for i in {1..30}; do
+            pg_isready -h ${{ vars.DB_HOST }} -p ${{ vars.DB_PORT }} -U ${{ vars.DB_USERNAME }} && break
+            sleep 2
+          done
+
+      - name: Run tests (use ci profile)
+        env:
+          DB_HOST: ${{ vars.DB_HOST }}
+          DB_PORT: ${{ vars.DB_PORT }}
+          DB_NAME: ${{ vars.DB_NAME }}
+          DB_USERNAME: ${{ vars.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_CONN_TIMEOUT_MS: ${{ vars.DB_CONN_TIMEOUT_MS }}
+          SPRING_PROFILES_ACTIVE: ci
+        run: mvn -B test
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ github.run_id }}
+          path: |
+            **/target/surefire-reports/**
+            **/target/failsafe-reports/**

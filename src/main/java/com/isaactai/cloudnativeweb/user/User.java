@@ -35,11 +35,21 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String pwdHash;
 
-    @CreationTimestamp
     @Column(name = "account_created", nullable = false, updatable = false)
     private Instant createTime;
 
-    @UpdateTimestamp
     @Column(name = "account_updated", nullable = false)
     private Instant updatedTime;
+
+    @PrePersist
+    void onCreate() {
+        Instant now = Instant.now();
+        this.createTime = now;
+        this.updatedTime   = now;
+    }
+
+    @PreUpdate
+    void onUpdate() {
+        this.updatedTime = Instant.now();
+    }
 }

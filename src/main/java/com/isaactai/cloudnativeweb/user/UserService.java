@@ -95,8 +95,8 @@ public class UserService {
         return new UserResponse(
                 me.getId(),
                 me.getFirstName(),
-                me.getUsername(),
                 me.getLastName(),
+                me.getUsername(),
                 me.getCreateTime(),
                 me.getUpdatedTime()
         );
