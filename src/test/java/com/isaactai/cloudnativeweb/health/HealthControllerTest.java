@@ -17,9 +17,18 @@ public class HealthControllerTest extends BaseApiTest {
     void healthz_ok_noBody_noQuery_noAuth() {
         var resp = given()
                 .when()
-                    .get("/healthz")
+                .get("/healthz")
                 .then()
-                    .statusCode(200)
-                    .body(is(emptyString()));
+                .statusCode(200)
+                .body(is(emptyString()));
+    }
+
+    @Test
+    void healthz_shouldRespondUnder200ms() {
+        given()
+                .when()
+                .get("/healthz")
+                .then()
+                .time(lessThan(400L));
     }
 }
