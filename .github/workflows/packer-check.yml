@@ -16,7 +16,7 @@ jobs:
     env:
       # --- AWS / Infra ---
       PKR_VAR_region: ${{ vars.AWS_REGION }}
-      PKR_VAR_profile: ${{ vars.PROFILE }}
+      PKR_VAR_profile: ${{ vars.AWS_PROFILE }}
       PKR_VAR_vpc_id: ${{ vars.VPC_ID }}
       PKR_VAR_subnet_id: ${{ vars.SUBNET_ID }}
       PKR_VAR_security_group_id: ${{ vars.SECURITY_GROUP_ID }}
