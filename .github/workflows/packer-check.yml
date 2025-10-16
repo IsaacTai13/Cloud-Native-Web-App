@@ -1,0 +1,36 @@
+name: Packer Check (PR)
+
+on:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+
+jobs:
+  packer-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Packer
+        uses: hashicorp/setup-packer@v2
+        with:
+          packer_version: 1.11.0
+
+      # 1) Fail if formatting would change any file
+      - name: Check Packer formatting
+        working-directory: packer
+        run: |
+          packer fmt -check -recursive .
+
+      # 2) Validate template syntactically and semantically
+      - name: Init & Validate
+        working-directory: packer
+        run: |
+          packer init .
+          packer validate .

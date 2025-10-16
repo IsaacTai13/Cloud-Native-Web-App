@@ -17,12 +17,14 @@ require_root() {
 ### ========= Load setup env (.env for this script) ==========
 # export all the value in .env to environment
 # by turning auto export on and then turn if off
-if [[ -f ./.env ]]; then
+SETUP_ENV_PATH="${SETUP_ENV_PATH:-/tmp/.env}"
+
+if [[ -f "$SETUP_ENV_PATH" ]]; then
   set -a
-  . ./.env
+  . "$SETUP_ENV_PATH"
   set +a
 else
-  err "Missing ./.env file for setup configuration!"
+  err "Missing "$SETUP_ENV_PATH" file for setup configuration!"
   exit 1
 fi
 
@@ -51,13 +53,19 @@ for v in "${REQUIRED_VARS[@]}"; do
   require_var "$v";
 done
 
-APP_ARCHIVE=$(echo "$APP_ARCHIVE_PATH"/*.zip)
+# Set up major file path: web app zip & .env
+APP_ARCHIVE_PATH="${APP_ARCHIVE_PATH:-/tmp}"
+APP_ARCHIVE="$(find "$APP_ARCHIVE_PATH" -maxdepth 1 -type f -name '*.zip' -print -quit)"
+if [[ -z "${APP_ARCHIVE:-}" ]]; then
+  err "No .zip artifact found under $APP_ARCHIVE_PATH"
+  exit 1
+fi
 ENV_FILE="$APP_DIR/.env"
 
 ### ====== Copy app.env to APP_DIR as .env ======
 # if APP_ENV_FILE is provided, move it under $APP_DIR and rename to .env
 copy_app_env() {
-  local source_file="./${APP_ENV_FILE}"
+  local source_file="${APP_ARCHIVE_PATH}/${APP_ENV_FILE}"
 
   if [[ ! -f "$source_file" ]]; then
     err "app.env not found at $source_file"
