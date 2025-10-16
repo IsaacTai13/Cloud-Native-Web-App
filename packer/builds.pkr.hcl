@@ -8,6 +8,8 @@ build {
   }
 
   provisioner "shell" {
+    inline_shebang = "/bin/bash" # use bash
+
     environment_vars = [
       "B_DB_TYPE=${var.shell_env.db_type}",
       "B_DB_NAME=${var.shell_env.db_name}",
@@ -67,6 +69,7 @@ EOC
   }
 
   provisioner "shell" {
+    inline_shebang = "/bin/bash" # use bash
     environment_vars = [
       "B_APP_GROUP=${var.shell_env.app_group}",
       "B_APP_USER=${var.shell_env.app_user}",
@@ -103,6 +106,7 @@ EOC
   }
 
   provisioner "shell" {
-    script = "${path.root}/../scripts/setup.sh"
+    inline_shebang = "/bin/bash" # use bash
+    script         = "${path.root}/../scripts/setup.sh"
   }
 }
