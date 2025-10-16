@@ -35,6 +35,7 @@ jobs:
           "app_user": "${{ vars.APP_USER }}",
           "app_dir": "${{ vars.APP_DIR }}",
           "app_env_file": "${{ vars.APP_ENV_FILE }}",
+          "app_archive_runner_path": "./scripts/webapp.zip",
           "app_archive_path": "/tmp",
           "service_name": "${{ vars.SERVICE_NAME }}"
         }
@@ -62,6 +63,12 @@ jobs:
         working-directory: packer
         run: |
           packer fmt -check -recursive .
+
+      - name: Prepare dummy artifact for validate
+        working-directory: packer
+        run: |
+          mkdir -p scripts
+          zip -q scripts/webapp.zip README.md || echo "empty" > scripts/webapp.zip
 
       # 2) Validate template syntactically and semantically
       - name: Init & Validate

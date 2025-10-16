@@ -47,12 +47,13 @@ variable "shell_env" {
     db_pass = string
 
     # App identity
-    app_group        = string
-    app_user         = string
-    app_dir          = string
-    app_env_file     = string
-    app_archive_path = string
-    service_name     = string
+    app_group               = string
+    app_user                = string
+    app_dir                 = string
+    app_env_file            = string
+    app_archive_runner_path = string
+    app_archive_path        = string
+    service_name            = string
   })
 }
 

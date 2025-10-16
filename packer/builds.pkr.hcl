@@ -3,7 +3,7 @@ build {
   sources = ["source.amazon-ebs.ubuntu"]
 
   provisioner "file" {
-    source      = "./scripts/webapp.zip"                         # runner
+    source      = var.shell_env.app_archive_runner_path          # runner
     destination = "${var.shell_env.app_archive_path}/webapp.zip" # EC2
   }
 
@@ -77,18 +77,18 @@ EOC
     inline = [
       "echo '[INFO] Generating systemd file...'",
       <<-EOC
-sudo tee /etc/systemd/system/${B_SERVICE_NAME}.service > /dev/null <<EOT
+sudo tee /etc/systemd/system/$B_SERVICE_NAME.service > /dev/null <<EOT
 [Unit]
 Description=CSYE6225 Web Application Service
 After=network.target
 
 [Service]
 Type=simple
-User=${B_APP_USER}
-Group=${B_APP_GROUP}
-WorkingDirectory=${B_APP_DIR}
-EnvironmentFile=${B_APP_DIR}/.env
-ExecStart=/usr/bin/java -jar ${B_APP_DIR}/webapp.jar
+User=$B_APP_USER
+Group=$B_APP_GROUP
+WorkingDirectory=$B_APP_DIR
+EnvironmentFile=$B_APP_DIR/.env
+ExecStart=/usr/bin/java -jar $B_APP_DIR/webapp.jar
 Restart=on-failure
 RestartSec=10
 
@@ -97,8 +97,8 @@ WantedBy=multi-user.target
 EOT
 EOC
       ,
-      "sudo chmod 0644 /etc/systemd/system/${B_SERVICE_NAME}.service",
-      "sudo chown root:root /etc/systemd/system/${B_SERVICE_NAME}.service"
+      "sudo chmod 0644 /etc/systemd/system/$B_SERVICE_NAME.service",
+      "sudo chown root:root /etc/systemd/system/$B_SERVICE_NAME.service"
     ]
   }
 

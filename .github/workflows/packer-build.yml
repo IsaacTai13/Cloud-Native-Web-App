@@ -120,6 +120,7 @@ jobs:
           "app_dir": "${{ vars.APP_DIR }}",
           "app_env_file": "${{ vars.APP_ENV_FILE }}",
           "app_archive_path": "/tmp",
+          "app_archive_runner_path": "./scripts/webapp.zip",
           "service_name": "${{ vars.SERVICE_NAME }}"
         }
 
