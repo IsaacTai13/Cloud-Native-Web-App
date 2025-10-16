@@ -18,6 +18,7 @@ build {
       "B_APP_DIR=${var.shell_env.app_dir}",
       "B_APP_ENV_FILE=${var.shell_env.app_env_file}",
       "B_APP_ARCHIVE_PATH=${var.shell_env.app_archive_path}",
+      "B_SERVICE_NAME=${var.shell_env.service_name}",
 
       # run-time (app.env)
       "R_DB_HOST=${var.web_env.db_host}",
@@ -31,31 +32,71 @@ build {
       "set -euo pipefail",
       "umask 0077",
       "echo '[INFO] Generating build-time .env ...'",
-      "cat > /tmp/.env <<EOT",
-      "DB_TYPE=$B_DB_TYPE",
-      "DB_NAME=$B_DB_NAME",
-      "DB_USER=$B_DB_USER",
-      "DB_PASS=$B_DB_PASS",
-      "APP_GROUP=csye6225",
-      "APP_USER=csyeapp",
-      "APP_DIR=$B_APP_DIR",
-      "APP_ENV_FILE=$B_APP_ENV_FILE",
-      "APP_ARCHIVE_PATH=$B_APP_ARCHIVE_PATH",
-      "EOT",
+      <<-EOC
+cat > /tmp/.env <<EOT
+DB_TYPE=$B_DB_TYPE
+DB_NAME=$B_DB_NAME
+DB_USER=$B_DB_USER
+DB_PASS=$B_DB_PASS
+APP_GROUP=csye6225
+APP_USER=csyeapp
+APP_DIR=$B_APP_DIR
+APP_ENV_FILE=$B_APP_ENV_FILE
+APP_ARCHIVE_PATH=$B_APP_ARCHIVE_PATH
+SERVICE_NAME=$B_SERVICE_NAME
+EOT
+EOC
       "echo '[INFO] Generating run-time app.env ...'",
       "sudo mkdir -p \"$B_APP_DIR\"",
-      "cat > /tmp/app.env <<EOT",
-      "DB_HOST=$R_DB_HOST",
-      "DB_PORT=$R_DB_PORT",
-      "DB_NAME=$B_DB_NAME",
-      "DB_USERNAME=$B_DB_USER",
-      "DB_PASSWORD=$B_DB_PASS",
-      "DB_CONN_TIMEOUT_MS=$R_DB_CONN_TIMEOUT_MS",
-      "SERVER_PORT=$R_SERVER_PORT",
-      "API_BASE=$R_API_BASE",
-      "EOT",
+      <<-EOC
+cat > /tmp/app.env <<EOT
+DB_HOST=$R_DB_HOST
+DB_PORT=$R_DB_PORT
+DB_NAME=$B_DB_NAME
+DB_USERNAME=$B_DB_USER
+DB_PASSWORD=$B_DB_PASS
+DB_CONN_TIMEOUT_MS=$R_DB_CONN_TIMEOUT_MS
+SERVER_PORT=$R_SERVER_PORT
+API_BASE=$R_API_BASE
+EOT
+EOC
       "echo '[INFO] All env files generated successfully in /tmp.'"
     ]
+  }
+
+  provisioner "shell" {
+    environment_vars = [
+      "B_APP_GROUP=${var.shell_env.app_group}",
+      "B_APP_USER=${var.shell_env.app_user}",
+      "B_APP_DIR=${var.shell_env.app_dir}",
+      "B_SERVICE_NAME=${var.shell_env.service_name}"
+    ]
+
+inline = [
+  "echo '[INFO] Generating systemd file...'",
+  <<-EOC
+sudo tee /etc/systemd/system/${B_SERVICE_NAME}.service > /dev/null <<EOT
+[Unit]
+Description=CSYE6225 Web Application Service
+After=network.target
+
+[Service]
+Type=simple
+User=${B_APP_USER}
+Group=${B_APP_GROUP}
+WorkingDirectory=${B_APP_DIR}
+EnvironmentFile=${B_APP_DIR}/.env
+ExecStart=/usr/bin/java -jar ${B_APP_DIR}/webapp.jar
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOT
+EOC
+  "sudo chmod 0644 /etc/systemd/system/${B_SERVICE_NAME}.service",
+  "sudo chown root:root /etc/systemd/system/${B_SERVICE_NAME}.service"
+]
   }
 
   provisioner "shell" {

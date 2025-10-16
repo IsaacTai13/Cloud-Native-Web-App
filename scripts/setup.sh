@@ -48,6 +48,7 @@ REQUIRED_VARS=(
   APP_USER
   APP_DIR
   APP_ENV_FILE
+  SERVICE_NAME
 )
 for v in "${REQUIRED_VARS[@]}"; do
   require_var "$v";
@@ -217,7 +218,7 @@ create_group_and_user() {
   log "Group '$APP_GROUP' and user '$APP_USER' created."
 }
 
-deploy_application() {
+deploy_artifact() {
   info "Creating application directory at $APP_DIR..."
   mkdir -p "$APP_DIR"
 
@@ -250,6 +251,8 @@ deploy_application() {
               # case: zip already has files at root → move them directly
               mv "$tmpdir"/* "$APP_DIR"/
             fi
+
+
           )
         else
           status=$?
@@ -270,6 +273,17 @@ deploy_application() {
       *.tar)  tar -xf "$APP_ARCHIVE" -C "$APP_DIR" ;;
       *)      err "Unsupported archive type: $APP_ARCHIVE"; exit 1 ;;
     esac
+
+    # find jar (usually inside target/*.jar), rename to webapp.jar
+    local jar_found
+    jar_found=$(sudo find "$APP_DIR" -type f -name "*.jar" | head -n1)
+    if [[ -z "$jar_found" ]]; then
+      err "No JAR found under $APP_DIR after unzip."
+      return 1
+    fi
+    
+    mv -f "$jar_found" "$APP_DIR/webapp.jar"
+
   else
     info "No application archive provided. Directory created but empty."
   fi
@@ -284,31 +298,26 @@ set_permissions() {
   find "$APP_DIR" -type f -exec chmod 640 {} +
 
   # Apply 750 permissions to executable files (shell scripts, binaries, and Maven wrapper)
-  find "$APP_DIR" -type f \( -name "*.sh" -o -name "*.run" -o -name "*.bin" -o -name "mvnw" \) -exec chmod 750 {} +
+  find "$APP_DIR" -type f \( -name "*.sh" -o -name "*.run" -o -name "*.bin" -o -name "mvnw" -o -name "*.jar" \) -exec chmod 750 {} +
   log "Permissions applied successfully."
+}
+
+deploy_systemd() {
+    sudo systemctl daemon-reload
+    sudo systemctl enable ${SERVICE_NAME}.service
+    log "systemd service installed and enabled (csye6225.service)"
+}
+
+strip_git_metadata() {
+  info "Stripping git metadata under $APP_DIR ..."
+
+  # remove common git catalog
+  sudo find "$APP_DIR" -type d \( -name ".git" -o -name ".github" \) -prune -exec rm -rf {} +
+  sudo find "$APP_DIR" -type f \( -name ".gitignore" -o -name ".gitattributes" -o -name ".gitmodules" \) -delete
 }
 
 clean_up() {
   rm -rf /var/lib/apt/lists/*
-}
-
-run_application() {
-  info "Starting Spring Boot application..."
-
-  # Ensure the wrapper exists
-  if [[ ! -f "$APP_DIR/mvnw" ]]; then
-    err "mvnw not found in $APP_DIR. Cannot start application."
-    return 1
-  fi
-
-  cd "$APP_DIR"
-  chmod +x mvnw
-
-  # Start the application in the background
-  # Hide all normal output (stdout) and keep only errors (stderr)
-  nohup ./mvnw spring-boot:run >/dev/null 2>>/var/log/cloud-native-web-error.log &
-
-  log "Application started successfully (errors logged to /var/log/cloud-native-web-error.log)"
 }
 
 main() {
@@ -323,7 +332,7 @@ main() {
     create_postgres_db
   fi
   create_group_and_user
-  deploy_application
+  deploy_artifact
   set_permissions
   clean_up
 
@@ -341,7 +350,8 @@ main() {
   echo "  sudo -u postgres psql -c '\\l'      # List databases"
   echo "  sudo -u postgres psql -c '\\du'     # List users"
 
-  run_application
+  deploy_systemd
+  strip_git_metadata
 }
 
 main "$@"

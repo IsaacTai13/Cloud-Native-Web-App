@@ -52,15 +52,16 @@ variable "shell_env" {
     app_dir            = string
     app_env_file       = string
     app_archive_path   = string
+    service_name       = string
   })
 }
 
 variable "web_env" {
   type = object({
     db_host            = string
-    db_port            = number
-    db_conn_timeout_ms = number
-    server_port        = number
+    db_port            = string
+    db_conn_timeout_ms = string
+    server_port        = string
     api_base           = string
   })
 }

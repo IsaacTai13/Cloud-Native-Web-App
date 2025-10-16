@@ -118,14 +118,14 @@ jobs:
       PKR_VAR_shell_env__app_user: ${{ vars.APP_USER }}
       PKR_VAR_shell_env__app_dir: ${{ vars.APP_DIR }}
       PKR_VAR_shell_env__app_env_file: ${{ vars.APP_ENV_FILE }}
+      PKR_VAR_shell_env__app_archive_path: /tmp
+      PKR_VAR_shell_env__service_name: ${{ vars.SERVICE_NAME }}
 
       PKR_VAR_web_env__db_host: ${{ vars.DB_HOST }}
       PKR_VAR_web_env__db_port: ${{ vars.DB_PORT }}
-      PKR_VAR_web_env__db_password: ${{ secrets.DB_PASSWORD }}
       PKR_VAR_web_env__db_conn_timeout_ms: ${{ vars.DB_CONN_TIMEOUT_MS }}
       PKR_VAR_web_env__server_port: ${{ vars.SERVER_PORT }}
       PKR_VAR_web_env__api_base: ${{ vars.API_BASE }}
-      PKR_VAR_shell_env__app_archive_path: /tmp
 
     steps:
       - name: Checkout
