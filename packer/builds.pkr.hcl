@@ -3,8 +3,8 @@ build {
   sources = ["source.amazon-ebs.ubuntu"]
 
   provisioner "file" {
-    source = "./scripts/webapp.zip"  # runner
-    destination = "${var.shell_env.app_archive_path}/webapp.zip"  # EC2
+    source      = "./scripts/webapp.zip"                         # runner
+    destination = "${var.shell_env.app_archive_path}/webapp.zip" # EC2
   }
 
   provisioner "shell" {
@@ -46,6 +46,7 @@ APP_ARCHIVE_PATH=$B_APP_ARCHIVE_PATH
 SERVICE_NAME=$B_SERVICE_NAME
 EOT
 EOC
+      ,
       "echo '[INFO] Generating run-time app.env ...'",
       "sudo mkdir -p \"$B_APP_DIR\"",
       <<-EOC
@@ -60,6 +61,7 @@ SERVER_PORT=$R_SERVER_PORT
 API_BASE=$R_API_BASE
 EOT
 EOC
+      ,
       "echo '[INFO] All env files generated successfully in /tmp.'"
     ]
   }
@@ -72,9 +74,9 @@ EOC
       "B_SERVICE_NAME=${var.shell_env.service_name}"
     ]
 
-inline = [
-  "echo '[INFO] Generating systemd file...'",
-  <<-EOC
+    inline = [
+      "echo '[INFO] Generating systemd file...'",
+      <<-EOC
 sudo tee /etc/systemd/system/${B_SERVICE_NAME}.service > /dev/null <<EOT
 [Unit]
 Description=CSYE6225 Web Application Service
@@ -94,9 +96,10 @@ RestartSec=10
 WantedBy=multi-user.target
 EOT
 EOC
-  "sudo chmod 0644 /etc/systemd/system/${B_SERVICE_NAME}.service",
-  "sudo chown root:root /etc/systemd/system/${B_SERVICE_NAME}.service"
-]
+      ,
+      "sudo chmod 0644 /etc/systemd/system/${B_SERVICE_NAME}.service",
+      "sudo chown root:root /etc/systemd/system/${B_SERVICE_NAME}.service"
+    ]
   }
 
   provisioner "shell" {

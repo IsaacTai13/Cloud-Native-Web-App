@@ -41,18 +41,18 @@ variable "ami_name" {
 variable "shell_env" {
   type = object({
     # Database
-    db_type            = string
-    db_name            = string
-    db_user            = string
-    db_pass            = string
+    db_type = string
+    db_name = string
+    db_user = string
+    db_pass = string
 
     # App identity
-    app_group          = string
-    app_user           = string
-    app_dir            = string
-    app_env_file       = string
-    app_archive_path   = string
-    service_name       = string
+    app_group        = string
+    app_user         = string
+    app_dir          = string
+    app_env_file     = string
+    app_archive_path = string
+    service_name     = string
   })
 }
 
