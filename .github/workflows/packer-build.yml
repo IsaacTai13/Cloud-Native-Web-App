@@ -98,34 +98,39 @@ jobs:
     needs: build-artifact
     
     env:
-      AWS_REGION: ${{ vars.AWS_REGION }}
-
       # --- AWS / Infra ---
       PKR_VAR_region: ${{ vars.AWS_REGION }}
-      PKR_VAR_instance_type: ${{ vars.INSTANCE_TYPE }}
-      PKR_VAR_ssh_username: ${{ vars.SSH_USERNAME }}
+      PKR_VAR_profile: ${{ vars.PROFILE }}
       PKR_VAR_vpc_id: ${{ vars.VPC_ID }}
       PKR_VAR_subnet_id: ${{ vars.SUBNET_ID }}
       PKR_VAR_security_group_id: ${{ vars.SECURITY_GROUP_ID }}
       PKR_VAR_demo_account_id: ${{ vars.DEMO_ACCOUNT_ID }}
+      PKR_VAR_instance_type: ${{ vars.INSTANCE_TYPE }}
+      PKR_VAR_ssh_username: ${{ vars.SSH_USERNAME }}
 
       # --- App / DB config ---
-      PKR_VAR_shell_env__db_type: ${{ vars.DB_TYPE }}
-      PKR_VAR_shell_env__db_name: ${{ vars.DB_NAME }}
-      PKR_VAR_shell_env__db_user: ${{ vars.DB_USERNAME }}
-      PKR_VAR_shell_env__db_pass: ${{ secrets.DB_PASSWORD }}
-      PKR_VAR_shell_env__app_group: ${{ vars.APP_GROUP }}
-      PKR_VAR_shell_env__app_user: ${{ vars.APP_USER }}
-      PKR_VAR_shell_env__app_dir: ${{ vars.APP_DIR }}
-      PKR_VAR_shell_env__app_env_file: ${{ vars.APP_ENV_FILE }}
-      PKR_VAR_shell_env__app_archive_path: /tmp
-      PKR_VAR_shell_env__service_name: ${{ vars.SERVICE_NAME }}
+      PKR_VAR_shell_env: >-
+        {
+          "db_type": "${{ vars.DB_TYPE }}",
+          "db_name": "${{ vars.DB_NAME }}",
+          "db_user": "${{ vars.DB_USERNAME }}",
+          "db_pass": "${{ secrets.DB_PASSWORD }}",
+          "app_group": "${{ vars.APP_GROUP }}",
+          "app_user": "${{ vars.APP_USER }}",
+          "app_dir": "${{ vars.APP_DIR }}",
+          "app_env_file": "${{ vars.APP_ENV_FILE }}",
+          "app_archive_path": "/tmp",
+          "service_name": "${{ vars.SERVICE_NAME }}"
+        }
 
-      PKR_VAR_web_env__db_host: ${{ vars.DB_HOST }}
-      PKR_VAR_web_env__db_port: ${{ vars.DB_PORT }}
-      PKR_VAR_web_env__db_conn_timeout_ms: ${{ vars.DB_CONN_TIMEOUT_MS }}
-      PKR_VAR_web_env__server_port: ${{ vars.SERVER_PORT }}
-      PKR_VAR_web_env__api_base: ${{ vars.API_BASE }}
+      PKR_VAR_web_env: >-
+        {
+          "db_host": "${{ vars.DB_HOST }}",
+          "db_port": "${{ vars.DB_PORT }}",
+          "db_conn_timeout_ms": "${{ vars.DB_CONN_TIMEOUT_MS }}",
+          "server_port": "${{ vars.SERVER_PORT }}",
+          "api_base": "${{ vars.API_BASE }}"
+        }
 
     steps:
       - name: Checkout
