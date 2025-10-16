@@ -106,7 +106,8 @@ EOC
   }
 
   provisioner "shell" {
-    inline_shebang = "/bin/bash" # use bash
-    script         = "${path.root}/../scripts/setup.sh"
+    inline_shebang  = "/bin/bash" # use bash
+    execute_command = "sudo bash '{{ .Path }}'"
+    script          = "${path.root}/../scripts/setup.sh"
   }
 }
