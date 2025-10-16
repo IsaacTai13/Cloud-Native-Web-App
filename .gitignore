@@ -35,3 +35,9 @@ build/
 ### Dev use
 .env
 .env.*
+
+### scripts
+scripts/*vars.sh
+
+### Packer
+*.pkrvars.hcl
