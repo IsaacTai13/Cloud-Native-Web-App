@@ -45,8 +45,7 @@ jobs:
           "db_host": "${{ vars.DB_HOST }}",
           "db_port": "${{ vars.DB_PORT }}",
           "db_conn_timeout_ms": "${{ vars.DB_CONN_TIMEOUT_MS }}",
-          "server_port": "${{ vars.SERVER_PORT }}",
-          "api_base": "${{ vars.API_BASE }}"
+          "server_port": "${{ vars.SERVER_PORT }}"
         }
 
     steps:

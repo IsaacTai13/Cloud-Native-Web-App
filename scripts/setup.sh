@@ -1,5 +1,15 @@
 #!/bin/bash
-
+# ===============================================================
+#  This setup script must be executed with **root privileges**.
+#  All installations, configurations, and file creations are
+#  performed as the root user for system-level access.
+#
+#  In the final stage, the script creates a dedicated Linux user
+#  and group for the web application (e.g., "webapp"), and then
+#  transfers ownership of all application files and directories
+#  to that user. This ensures the web app runs under a non-root
+#  account with least privilege for better security.
+# ===============================================================
 set -euo pipefail
 
 ### ====== Configure log color ======
@@ -40,10 +50,6 @@ require_var() {
 
 # Mark which are REQUIRED vs OPTIONAL
 REQUIRED_VARS=(
-  DB_TYPE
-  DB_NAME
-  DB_USER
-  DB_PASS
   APP_GROUP
   APP_USER
   APP_DIR
@@ -92,15 +98,8 @@ ensure_env_file() {
     mkdir -p "$APP_DIR"
 
     cat > "$ENV_FILE.example" <<'ENV'
-DB_HOST=
-DB_PORT=
-DB_NAME=
-DB_USERNAME=
-DB_PASSWORD=
 DB_CONN_TIMEOUT_MS=
-
 SERVER_PORT=8081
-API_BASE=http://localhost
 # Notes:
 # 1) Rename this file to ".env" after filling real values.
 # 2) Adjust permissions as needed (e.g., chmod 640 .env)
@@ -141,6 +140,7 @@ install_java() {
   log "Java installed successfully at $JAVA_HOME"
 }
 
+# disabled
 install_database() {
   case "$DB_TYPE" in
     postgres|postgresql)
@@ -327,10 +327,6 @@ main() {
   update_system
   install_common_tools
   install_java
-  install_database
-  if [[ "$DB_TYPE" == "postgres" || "$DB_TYPE" == "postgresql" ]]; then
-    create_postgres_db
-  fi
   create_group_and_user
   deploy_artifact
   set_permissions
@@ -339,16 +335,11 @@ main() {
   echo
   log "Setup completed successfully!"
   echo "------------------------------------------"
-  echo "Database Type : $DB_TYPE"
-  echo "Database Name : $DB_NAME"
-  echo "Database User : $DB_USER"
   echo "App Directory : $APP_DIR"
   echo "App User      : $APP_USER ($APP_GROUP)"
   echo "APP_ARCHIVE  : ${APP_ARCHIVE:-<none>}"
   echo "------------------------------------------"
   info "Verification tips:"
-  echo "  sudo -u postgres psql -c '\\l'      # List databases"
-  echo "  sudo -u postgres psql -c '\\du'     # List users"
 
   deploy_systemd
   strip_git_metadata
