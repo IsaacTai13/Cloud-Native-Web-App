@@ -3,15 +3,22 @@ package com.isaactai.cloudnativeweb.image;
 import com.isaactai.cloudnativeweb.common.exception.BadRequestException;
 import com.isaactai.cloudnativeweb.common.exception.NotFoundException;
 import com.isaactai.cloudnativeweb.image.dto.ImageResponse;
+import com.isaactai.cloudnativeweb.image.exception.S3UploadException;
 import com.isaactai.cloudnativeweb.product.Product;
 import com.isaactai.cloudnativeweb.product.ProductService;
 import com.isaactai.cloudnativeweb.user.User;
 import com.isaactai.cloudnativeweb.user.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -19,12 +26,17 @@ import java.util.UUID;
 /**
  * @author tisaac
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ImageService {
     private final ImageRepository repo;
     private final UserService userService;
     private final ProductService prodService;
+
+    private final S3Client s3Client; // AWS SDK Client side (inject by Spring)
+    @Value("${aws.s3.bucket}") // read bucket name from .env
+    private String bucketName;
 
     @Transactional
     public ImageResponse uploadProdImg(String name, Long productId, MultipartFile file) {
@@ -46,20 +58,18 @@ public class ImageService {
         String key = String.format("users/%d/products/%d/%s-%s",
                 user.getId(), productId, UUID.randomUUID(), safeName);
 
-        /*
         try {
             s3Client.putObject(
-                PutObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(key)
-                    .contentType(contentType)
-                    .build(),
-                RequestBody.fromBytes(file.getBytes())
+                    PutObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(key)
+                            .contentType(contentType)
+                            .build(),
+                    RequestBody.fromBytes(file.getBytes())
             );
         } catch (IOException e) {
-            throw new RuntimeException("S3 upload failed", e);
+            throw new S3UploadException();
         }
-        */
 
         Image img = Image.builder()
                 .product(product)
@@ -90,6 +100,15 @@ public class ImageService {
 
         if (!img.getProduct().getId().equals(product.getId())) {
             throw new BadRequestException("Image does not belong to this product");
+        }
+
+        try {
+            s3Client.deleteObject(DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(img.getS3BucketPath())
+                    .build());
+        } catch (S3Exception e) {
+            log.warn("S3 delete failed for key {}: {}", img.getS3BucketPath(), e.awsErrorDetails().errorMessage());
         }
 
         repo.delete(img);

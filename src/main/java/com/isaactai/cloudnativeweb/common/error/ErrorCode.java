@@ -11,5 +11,6 @@ public enum ErrorCode {
     FORBIDDEN,
     VALIDATION_FAILED,
     BAD_REQUEST,
-    INTERNAL_ERROR
+    INTERNAL_ERROR,
+    BAD_GATEWAY,
 }
