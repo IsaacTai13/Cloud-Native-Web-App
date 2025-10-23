@@ -101,4 +101,10 @@ public class UserService {
                 me.getUpdatedTime()
         );
     }
+
+    @Transactional
+    public User getByUsername(String username) {
+        return userRepo.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+    }
 }
