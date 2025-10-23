@@ -8,7 +8,6 @@ A Spring Boot–based cloud-native web application with PostgreSQL persistence, 
 
 - **Java**: JDK 17+
 - **Maven**: Included via `./mvnw`
-- **PostgreSQL**: v16+ (local or via Docker)
 - **Docker & Docker Compose**: For containerized database setup
 - **IDE**: IntelliJ IDEA (recommended)
 
@@ -64,7 +63,9 @@ Create `.env`:
 
 2. Edit the .env file to match your local DB configuration.
 
-### PostgreSQL with Docker
+### PostgreSQL with Docker (This can be used for local testing)
+
+> ⭐The application now connects directly to an AWS RDS PostgreSQL instance instead of a local Docker container.
 
 Docker Compose automatically loads environment variables from a .env file located in the project root directory. Make sure you create this file before starting the containers.
 
@@ -133,6 +134,13 @@ The app will start at: http://localhost:8081
 - PUT /v1/product/{id} – Update product (Requires Auth)
 - PATCH /v1/product/{id} – Partially update product (Requires Auth)
 - DELETE /v1/product/{id} – Delete product (Requires Auth)
+
+### Image APIs
+
+- POST `/v1/product/{product_id}/image` – Upload an image for a product
+- GET `/v1/product/{product_id}/image` – List all uploaded images for a product
+- GET `/v1/product/{product_id}/image/{image_id}` – Retrieve specific image details
+- DELETE `/v1/product/{product_id}/image/{image_id}` – Delete an image
 
 ---
 
@@ -204,7 +212,8 @@ This repository uses GitHub Actions for CI:
 
 ## 📦 Deployment
 
-Ensure .env file is configured correctly
+Ensure .env file is configured correctly. 
+The app automatically connects to AWS RDS (ensure DB credentials in `.env` match your RDS configuration).
 
 Build the JAR:
 
