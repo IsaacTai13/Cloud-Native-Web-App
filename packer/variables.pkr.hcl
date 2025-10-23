@@ -63,6 +63,5 @@ variable "web_env" {
     db_port            = string
     db_conn_timeout_ms = string
     server_port        = string
-    api_base           = string
   })
 }

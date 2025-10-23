@@ -5,11 +5,10 @@ import com.isaactai.cloudnativeweb.common.exception.NotFoundException;
 import com.isaactai.cloudnativeweb.product.dto.*;
 import com.isaactai.cloudnativeweb.product.exception.DuplicateSkuException;
 import com.isaactai.cloudnativeweb.user.User;
-import com.isaactai.cloudnativeweb.user.UserRepository;
+import com.isaactai.cloudnativeweb.user.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.LocaleResolver;
 
 /**
  * @author tisaac
@@ -19,12 +18,11 @@ import org.springframework.web.servlet.LocaleResolver;
 public class ProductService {
 
     private final ProductRepository repo;
-    private final UserRepository userRepo;
-    private final LocaleResolver localeResolver;
+    private final UserService userService;
 
     @Transactional
     public ProductResponse createForUser(ProductCreateRequest req, String username) {
-        User user = getUser(username);
+        User user = userService.getByUsername(username);
 
         if (repo.existsBySku(req.sku())) {
             throw new DuplicateSkuException();
@@ -45,7 +43,7 @@ public class ProductService {
 
     @Transactional
     public void updateProduct(Long productId, String username, ProductUpdateRequest req) {
-        Product p = locateOwnedProduct(productId, username);
+        Product p = locateOwnedProduct(productId, username, "You cannot update this product");
 
         ensureSkuUnique(req.sku(), p.getId(), p.getSku());
 
@@ -60,7 +58,7 @@ public class ProductService {
 
     @Transactional
     public void patchProduct(Long productId, String username, ProductPatchRequest req) {
-        Product p = locateOwnedProduct(productId, username);
+        Product p = locateOwnedProduct(productId, username, "You cannot update this product");
 
         if (req.name() != null)         p.setName(req.name());
         if (req.description() != null)  p.setDescription(req.description());
@@ -76,7 +74,7 @@ public class ProductService {
 
     @Transactional
     public void deleteProduct(Long productId, String username) {
-        Product p = locateOwnedProduct(productId, username);
+        Product p = locateOwnedProduct(productId, username, "You cannot delete this product");
         repo.delete(p);
     }
 
@@ -88,18 +86,13 @@ public class ProductService {
         return ProductMapper.toResponse(p);
     }
 
-    public User getUser(String username) {
-        return userRepo.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-    }
-
-    public Product locateOwnedProduct(Long productId, String username) {
-        User user = getUser(username);
+    public Product locateOwnedProduct(Long productId, String username, String msg) {
+        User user = userService.getByUsername(username);
         Product p = repo.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
 
         if (!p.getOwnerUserId().equals(user.getId())) {
-            throw new ForbiddenException("You cannot update this product");
+            throw new ForbiddenException(msg);
         }
         return p;
     }

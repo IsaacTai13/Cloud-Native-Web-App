@@ -3,3 +3,8 @@ spring:
     hikari:
       maximum-pool-size: 4
       connection-timeout: ${DB_CONN_TIMEOUT_MS:5000}
+
+aws:
+  s3:
+    bucket: dummy-bucket
+  region: us-east-1

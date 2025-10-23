@@ -27,7 +27,6 @@ build {
       "R_DB_PORT=${var.web_env.db_port}",
       "R_DB_CONN_TIMEOUT_MS=${var.web_env.db_conn_timeout_ms}",
       "R_SERVER_PORT=${var.web_env.server_port}",
-      "R_API_BASE=${var.web_env.api_base}",
     ]
 
     inline = [
@@ -36,10 +35,6 @@ build {
       "echo '[INFO] Generating build-time .env ...'",
       <<-EOC
 cat > /tmp/.env <<EOT
-DB_TYPE=$B_DB_TYPE
-DB_NAME=$B_DB_NAME
-DB_USER=$B_DB_USER
-DB_PASS=$B_DB_PASS
 APP_GROUP=csye6225
 APP_USER=csyeapp
 APP_DIR=$B_APP_DIR
@@ -53,14 +48,8 @@ EOC
       "sudo mkdir -p \"$B_APP_DIR\"",
       <<-EOC
 cat > /tmp/app.env <<EOT
-DB_HOST=$R_DB_HOST
-DB_PORT=$R_DB_PORT
-DB_NAME=$B_DB_NAME
-DB_USERNAME=$B_DB_USER
-DB_PASSWORD=$B_DB_PASS
 DB_CONN_TIMEOUT_MS=$R_DB_CONN_TIMEOUT_MS
 SERVER_PORT=$R_SERVER_PORT
-API_BASE=$R_API_BASE
 EOT
 EOC
       ,
