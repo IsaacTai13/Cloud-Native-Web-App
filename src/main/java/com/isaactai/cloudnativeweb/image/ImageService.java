@@ -1,6 +1,7 @@
 package com.isaactai.cloudnativeweb.image;
 
 import com.isaactai.cloudnativeweb.common.exception.BadRequestException;
+import com.isaactai.cloudnativeweb.common.exception.NotFoundException;
 import com.isaactai.cloudnativeweb.image.dto.ImageResponse;
 import com.isaactai.cloudnativeweb.product.Product;
 import com.isaactai.cloudnativeweb.product.ProductService;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -27,7 +29,8 @@ public class ImageService {
     @Transactional
     public ImageResponse uploadProdImg(String name, Long productId, MultipartFile file) {
         User user = userService.getByUsername(name);
-        Product product = prodService.locateOwnedProduct(productId, user.getUsername());
+        Product product = prodService.locateOwnedProduct(
+                productId, user.getUsername(), "You can't upload image for the product");
 
         if (file.isEmpty()) {
             throw new BadRequestException("File is empty");
@@ -73,6 +76,54 @@ public class ImageService {
                 saved.getFileName(),
                 saved.getDateCreated(),
                 saved.getS3BucketPath()
+        );
+    }
+
+    @Transactional
+    public void deleteForUser(String username, Long productId, Long imageId) {
+        User user = userService.getByUsername(username);
+        Product product = prodService.locateOwnedProduct(
+                productId, user.getUsername(), "You cannot delete another user's image");
+
+        Image img = repo.findById(imageId)
+                .orElseThrow(() -> new NotFoundException("Image not found"));
+
+        if (!img.getProduct().getId().equals(product.getId())) {
+            throw new BadRequestException("Image does not belong to this product");
+        }
+
+        repo.delete(img);
+    }
+
+    @Transactional
+    public List<ImageResponse> listImages(Long productId) {
+        prodService.getProduct(productId); // try to find the product first
+
+        return repo.findByProduct_IdOrderByDateCreatedDesc(productId)
+                .stream()
+                .map(img -> new ImageResponse(
+                        img.getImageId(),
+                        img.getProduct().getId(),
+                        img.getFileName(),
+                        img.getDateCreated(),
+                        img.getS3BucketPath()
+                ))
+                .toList();
+    }
+
+    @Transactional
+    public ImageResponse getImageDetails(Long productId, Long imageId) {
+        prodService.getProduct(productId);
+
+        Image img = repo.findById(imageId)
+                .orElseThrow(() -> new NotFoundException("Image not found"));
+
+        return new ImageResponse(
+                img.getImageId(),
+                img.getProduct().getId(),
+                img.getFileName(),
+                img.getDateCreated(),
+                img.getS3BucketPath()
         );
     }
 

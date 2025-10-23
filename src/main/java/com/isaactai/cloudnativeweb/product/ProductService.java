@@ -43,7 +43,7 @@ public class ProductService {
 
     @Transactional
     public void updateProduct(Long productId, String username, ProductUpdateRequest req) {
-        Product p = locateOwnedProduct(productId, username);
+        Product p = locateOwnedProduct(productId, username, "You cannot update this product");
 
         ensureSkuUnique(req.sku(), p.getId(), p.getSku());
 
@@ -58,7 +58,7 @@ public class ProductService {
 
     @Transactional
     public void patchProduct(Long productId, String username, ProductPatchRequest req) {
-        Product p = locateOwnedProduct(productId, username);
+        Product p = locateOwnedProduct(productId, username, "You cannot update this product");
 
         if (req.name() != null)         p.setName(req.name());
         if (req.description() != null)  p.setDescription(req.description());
@@ -74,7 +74,7 @@ public class ProductService {
 
     @Transactional
     public void deleteProduct(Long productId, String username) {
-        Product p = locateOwnedProduct(productId, username);
+        Product p = locateOwnedProduct(productId, username, "You cannot delete this product");
         repo.delete(p);
     }
 
@@ -86,13 +86,13 @@ public class ProductService {
         return ProductMapper.toResponse(p);
     }
 
-    public Product locateOwnedProduct(Long productId, String username) {
+    public Product locateOwnedProduct(Long productId, String username, String msg) {
         User user = userService.getByUsername(username);
         Product p = repo.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
 
         if (!p.getOwnerUserId().equals(user.getId())) {
-            throw new ForbiddenException("You cannot update this product");
+            throw new ForbiddenException(msg);
         }
         return p;
     }

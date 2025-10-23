@@ -8,6 +8,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 /**
  * @author tisaac
  */
@@ -27,5 +29,30 @@ public class ImageController {
         return service.uploadProdImg(auth.getName(), productId, file);
     }
 
+    @DeleteMapping("/{image_id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteImage(
+            @PathVariable("product_id") Long productId,
+            @PathVariable("image_id") Long imageId,
+            Authentication auth
+    ) {
+        service.deleteForUser(auth.getName(), productId, imageId);
+    }
 
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public List<ImageResponse> listImages(
+            @PathVariable("product_id") Long productId
+    ) {
+        return service.listImages(productId);
+    }
+
+    @GetMapping("/{image_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public ImageResponse getImage(
+            @PathVariable("product_id") Long productId,
+            @PathVariable("image_id") Long imageId
+    ) {
+        return service.getImageDetails(productId, imageId);
+    }
 }
