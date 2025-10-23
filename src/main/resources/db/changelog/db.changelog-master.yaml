@@ -5,3 +5,7 @@ databaseChangeLog:
       file: db/changelog/changes/002-create-users.yml
   - include:
       file: db/changelog/changes/003-create-products.yml
+  - include:
+      file: db/changelog/changes/004-alter-products.yml
+  - include:
+      file: db/changelog/changes/005-create-images.yaml

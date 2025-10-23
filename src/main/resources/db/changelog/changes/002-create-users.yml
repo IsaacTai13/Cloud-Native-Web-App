@@ -35,13 +35,13 @@ databaseChangeLog:
                     unique: true
               - column:
                   name: account_created
-                  type: timestamptz
+                  type: TIMESTAMPTZ
                   defaultValueComputed: NOW()
                   constraints:
                     nullable: false
               - column:
                   name: account_updated
-                  type: timestamptz
+                  type: TIMESTAMPTZ
                   defaultValueComputed: NOW()
                   constraints:
                     nullable: false

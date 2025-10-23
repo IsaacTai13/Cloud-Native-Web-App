@@ -1,0 +1,59 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-create-images
+      author: isaac
+      changes:
+        - createTable:
+            tableName: images
+            remarks: "Stores metadata for product images (S3 objects)."
+            columns:
+              - column:
+                  name: image_id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_images
+                    nullable: false
+              - column:
+                  name: product_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: file_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: s3_bucket_path
+                  type: VARCHAR(1024)
+                  remarks: "S3 object key (not including bucket name)."
+                  constraints:
+                    nullable: false
+              - column:
+                  name: date_created
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: images
+            baseColumnNames: product_id
+            constraintName: fk_images_product
+            referencedTableName: products
+            referencedColumnNames: id
+            onDelete: CASCADE
+            onUpdate: RESTRICT
+        - createIndex:
+            tableName: images
+            indexName: idx_images_product_id
+            columns:
+              - column:
+                  name: product_id
+        - createIndex:
+            tableName: images
+            indexName: idx_images_date_created
+            columns:
+              - column:
+                  name: date_created
