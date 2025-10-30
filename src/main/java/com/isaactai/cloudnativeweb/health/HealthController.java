@@ -3,6 +3,7 @@ package com.isaactai.cloudnativeweb.health;
 import com.isaactai.cloudnativeweb.common.exception.BadRequestException;
 import com.isaactai.cloudnativeweb.logging.AccessLog;
 import com.isaactai.cloudnativeweb.logging.AccessNote;
+import io.micrometer.core.annotation.Timed;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -34,6 +35,7 @@ public class HealthController {
             clientWarn = "Health Check failed",
             serverError = "Unexpected error occurred"
     )
+    @Timed(value = "api.healthz", description = "Time taken to respond to /healthz requests")
     @GetMapping("/healthz")
     public ResponseEntity<Void> healthz(
             HttpServletRequest request,

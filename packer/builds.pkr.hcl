@@ -127,13 +127,27 @@ EOC
   provisioner "shell" {
     inline_shebang = "/bin/bash"
     inline = [
-      "cat > /tmp/amazon-cloudwatch-agent.json <<'EOF'\n${local.cwagent_config}\nEOF"
+      "set -euo pipefail",
+      "echo '[INFO] Generating cloudwatch agent file...'",
+      <<-EOC
+cat > /tmp/amazon-cloudwatch-agent.json <<EOF
+${local.cwagent_config}
+EOF
+EOC
+      ,
+      "if [ -f /tmp/amazon-cloudwatch-agent.json ]; then",
+      "  echo '[SUCCESS] Config file created successfully:'",
+      "  head -n 10 /tmp/amazon-cloudwatch-agent.json",
+      "else",
+      "  echo '[ERROR] Failed to generate /tmp/amazon-cloudwatch-agent.json'; exit 1;",
+      "fi"
     ]
   }
 
   # Move the rendered config file to the official CloudWatch Agent directory
   provisioner "shell" {
     inline = [
+      "set -euo pipefail",
       "sudo mv /tmp/amazon-cloudwatch-agent.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
       "sudo chown root:root /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
       "sudo chmod 0644 /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
@@ -152,6 +166,7 @@ EOC
       "B_APP_GROUP=${var.shell_env.app_group}"
     ]
     inline = [
+      "set -euo pipefail",
       "echo '[INFO] Ensuring log directory exists...'",
       "sudo mkdir -p \"$B_APP_DIR/log\"",
       "sudo chown -R \"$B_APP_USER:$B_APP_GROUP\" \"$B_APP_DIR\"",
