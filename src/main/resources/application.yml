@@ -25,6 +25,16 @@ spring:
     deserialization:
       fail-on-unknown-properties: true
 
+logging:
+  file:
+    name: ${LOG_DIR}/log/app.log
+  level:
+    root: INFO
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: OFF
+    org.springframework.web.servlet.handler.AbstractHandlerExceptionResolver: OFF
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger - %msg%n"
+
 aws:
   region: ${AWS_REGION}
   s3:
