@@ -130,7 +130,7 @@ EOC
       "set -euo pipefail",
       "echo '[INFO] Generating cloudwatch agent file...'",
       <<-EOC
-cat > /tmp/amazon-cloudwatch-agent.json <<EOF
+cat > /tmp/amazon-cloudwatch-agent.json <<'EOF'
 ${local.cwagent_config}
 EOF
 EOC
