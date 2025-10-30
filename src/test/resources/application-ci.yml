@@ -4,6 +4,8 @@ spring:
       maximum-pool-size: 4
       connection-timeout: ${DB_CONN_TIMEOUT_MS:5000}
 
+APP_DIR: ${java.io.tmpdir}/csye6225
+
 aws:
   s3:
     bucket: dummy-bucket

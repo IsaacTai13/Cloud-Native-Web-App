@@ -2,6 +2,7 @@ package com.isaactai.cloudnativeweb.image;
 
 import com.isaactai.cloudnativeweb.common.exception.BadRequestException;
 import com.isaactai.cloudnativeweb.common.exception.NotFoundException;
+import com.isaactai.cloudnativeweb.config.TimedS3;
 import com.isaactai.cloudnativeweb.image.dto.ImageResponse;
 import com.isaactai.cloudnativeweb.image.exception.S3UploadException;
 import com.isaactai.cloudnativeweb.product.Product;
@@ -15,7 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
@@ -33,8 +33,8 @@ public class ImageService {
     private final ImageRepository repo;
     private final UserService userService;
     private final ProductService prodService;
+    private final TimedS3 timedS3;
 
-    private final S3Client s3Client; // AWS SDK Client side (inject by Spring)
     @Value("${aws.s3.bucket}") // read bucket name from .env
     private String bucketName;
 
@@ -59,7 +59,7 @@ public class ImageService {
                 user.getId(), productId, UUID.randomUUID(), safeName);
 
         try {
-            s3Client.putObject(
+            timedS3.putObject(
                     PutObjectRequest.builder()
                             .bucket(bucketName)
                             .key(key)
@@ -103,7 +103,7 @@ public class ImageService {
         }
 
         try {
-            s3Client.deleteObject(DeleteObjectRequest.builder()
+            timedS3.deleteObject(DeleteObjectRequest.builder()
                     .bucket(bucketName)
                     .key(img.getS3BucketPath())
                     .build());

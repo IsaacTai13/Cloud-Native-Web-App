@@ -1,6 +1,9 @@
 package com.isaactai.cloudnativeweb.health;
 
 import com.isaactai.cloudnativeweb.common.exception.BadRequestException;
+import com.isaactai.cloudnativeweb.logging.AccessLog;
+import com.isaactai.cloudnativeweb.logging.AccessNote;
+import io.micrometer.core.annotation.Timed;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,17 +29,26 @@ public class HealthController {
     // For general-purpose lightweight health checks under heavy load.
     // Inserts a new record into the database each time.
     // Does not return any response body.
+    @AccessNote(
+            label = "Health",
+            success = "Health check successful",
+            clientWarn = "Health Check failed",
+            serverError = "Unexpected error occurred"
+    )
+    @Timed(value = "api.healthz", description = "Time taken to respond to /healthz requests")
     @GetMapping("/healthz")
     public ResponseEntity<Void> healthz(
             HttpServletRequest request,
             @RequestParam Map<String, String> queryParams
     ) {
         if (!queryParams.isEmpty()) {
+            AccessLog.clientWarn(request, "Query parameters are not allowed");
             return ResponseEntity.badRequest().build();
         }
 
         try {
             if (request.getInputStream().read() != -1) {
+                AccessLog.clientWarn(request, "Request body is not allowed");
                 return ResponseEntity.badRequest().build();
             }
         } catch (IOException e) {
@@ -58,6 +70,10 @@ public class HealthController {
             value = "/healthz",
             method = {RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.PATCH}
     )
+    @AccessNote(
+            label = "Health",
+            clientWarn = "Health Check failed - Method not allowed"
+    )
     public ResponseEntity<Void> healthzWrongMethod() {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
     }
@@ -66,6 +82,12 @@ public class HealthController {
     // Returns a JSON response with service and dependency status.
     // Does not insert a new record into the database.
     @GetMapping(value = "/api/health", produces = MediaType.APPLICATION_JSON_VALUE)
+    @AccessNote(
+            label = "Health",
+            success = "Health probe successful",
+            clientWarn = "Health Probe failed",
+            serverError = "Unexpected error occurred"
+    )
     public ResponseEntity<HealthProbeService.HealthResponse> probe(HttpServletRequest request) {
         try {
             if (request.getInputStream().read() != -1) {

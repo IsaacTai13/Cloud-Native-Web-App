@@ -1,9 +1,11 @@
 package com.isaactai.cloudnativeweb.product;
 
+import com.isaactai.cloudnativeweb.logging.AccessNote;
 import com.isaactai.cloudnativeweb.product.dto.ProductCreateRequest;
 import com.isaactai.cloudnativeweb.product.dto.ProductPatchRequest;
 import com.isaactai.cloudnativeweb.product.dto.ProductResponse;
 import com.isaactai.cloudnativeweb.product.dto.ProductUpdateRequest;
+import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,13 @@ public class ProductController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @AccessNote(
+            label = "Product",
+            success = "Product created successfully",
+            clientWarn = "Product creation failed",
+            serverError = "Unexpected error occurred during product creation"
+    )
+    @Timed(value = "api.product.create", description = "Time taken to create a new product")
     public ProductResponse create(
             @Valid @RequestBody ProductCreateRequest req,
             Authentication auth
@@ -31,6 +40,13 @@ public class ProductController {
 
     @PutMapping("/{productId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @AccessNote(
+            label = "Product",
+            success = "Product updated successfully",
+            clientWarn = "Product update failed",
+            serverError = "Unexpected error occurred during product update"
+    )
+    @Timed(value = "api.product.update", description = "Time taken to update a product")
     public void updateProduct(
             @PathVariable Long productId,
             @Valid @RequestBody ProductUpdateRequest req,
@@ -41,6 +57,13 @@ public class ProductController {
 
     @PatchMapping("/{productId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @AccessNote(
+            label = "Product",
+            success = "Product patched successfully",
+            clientWarn = "Product patch failed",
+            serverError = "Unexpected error occurred during product patch"
+    )
+    @Timed(value = "api.product.patch", description = "Time taken to patch a product")
     public void patchProduct(
             @PathVariable Long productId,
             @Valid @RequestBody ProductPatchRequest req,
@@ -51,6 +74,13 @@ public class ProductController {
 
     @DeleteMapping("/{productId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @AccessNote(
+            label = "Product",
+            success = "Product deleted successfully",
+            clientWarn = "Product deletion failed",
+            serverError = "Unexpected error occurred during product deletion"
+    )
+    @Timed(value = "api.product.delete", description = "Time taken to delete a product")
     public void deleteProduct(
             @PathVariable Long productId,
             Authentication auth
@@ -60,6 +90,13 @@ public class ProductController {
 
     @GetMapping("/{productId}")
     @ResponseStatus(HttpStatus.OK)
+    @AccessNote(
+            label = "Product",
+            success = "Product retrieved successfully",
+            clientWarn = "Product retrieval failed",
+            serverError = "Unexpected error occurred during product retrieval"
+    )
+    @Timed(value = "api.product.get", description = "Time taken to retrieve a product")
     public ProductResponse getProduct(@PathVariable Long productId) {
         return service.getProduct(productId);
     }

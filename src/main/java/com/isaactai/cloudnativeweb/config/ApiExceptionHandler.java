@@ -23,8 +23,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class ApiExceptionHandler {
 
     // For my custom BaseApiException
+    // Expected exception
     @ExceptionHandler(BaseApiException.class)
     public ResponseEntity<ApiErrorResponse> handleBase(BaseApiException ex, HttpServletRequest req) {
+        req.setAttribute("error.expected", true);
+        req.setAttribute("error.code", ex.getCode().name());
+        req.setAttribute("error.message", ex.getMessage());
+        req.setAttribute("error.exception", ex.getClass().getSimpleName());
+
         HttpStatus status = ex.getStatus();
         ApiErrorResponse body = ApiErrorResponse.of(
                 status.value(),
@@ -33,6 +39,16 @@ public class ApiExceptionHandler {
                 req.getRequestURI()
         );
         return ResponseEntity.status(status).body(body);
+    }
+
+    @ExceptionHandler(Exception.class) // Unexpected 5xx
+    public ResponseEntity<ApiErrorResponse> handleAny(Exception ex, HttpServletRequest req) {
+        req.setAttribute("error.unexpected", true);
+        req.setAttribute("error.throwable", ex);  // for AccessLogFilter to print stack
+        req.setAttribute("error.message", ex.getMessage());
+        req.setAttribute("error.exception", ex.getClass().getSimpleName());
+        var st = HttpStatus.INTERNAL_SERVER_ERROR;
+        return ResponseEntity.status(st).body(ApiErrorResponse.of(st.value(), "INTERNAL_ERROR", "Internal server error", req.getRequestURI()));
     }
 
     // @Valid validation failed
@@ -75,6 +91,8 @@ public class ApiExceptionHandler {
                 ApiErrorResponse.of(400, "BAD_REQUEST", msg, req.getRequestURI())
         );
     }
+
+
 
     // TODO: Fallback handler to avoid returning raw 500 errors
 }

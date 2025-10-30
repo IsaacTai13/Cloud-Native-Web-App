@@ -41,3 +41,7 @@ scripts/*vars.sh
 
 ### Packer
 *.pkrvars.hcl
+
+### Logging
+
+log/*

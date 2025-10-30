@@ -50,7 +50,7 @@ public class ProductControllerTest extends BaseApiTest {
                 null, "Apple", 2);
 
         res = given()
-                .auth().basic(username, pwd)
+                .auth().preemptive().basic(username, pwd)
                 .contentType("application/json")
                 .body(bodyJson)
                 .when()
@@ -73,7 +73,7 @@ public class ProductControllerTest extends BaseApiTest {
                     null, "Apple", 5);
 
             given()
-                    .auth().basic(username, pwd)
+                    .auth().preemptive().basic(username, pwd)
                     .contentType("application/json")
                     .body(bodyJson)
                     .when()
@@ -93,7 +93,7 @@ public class ProductControllerTest extends BaseApiTest {
             String json = productJson("BadProduct", "Invalid Quantity", null, "Microsoft", 111);
 
             given()
-                    .auth().basic(username, pwd)
+                    .auth().preemptive().basic(username, pwd)
                     .contentType("application/json")
                     .body(json)
                     .when()
@@ -106,13 +106,13 @@ public class ProductControllerTest extends BaseApiTest {
         void createProduct_duplicateSku_returns400() {
             String dupSku = "sku-" + System.currentTimeMillis();
             String body1 = productJson("BadProduct", "Invalid Quantity", dupSku, "Microsoft", 11);
-            given().auth().basic(username, pwd)
+            given().auth().preemptive().basic(username, pwd)
                     .contentType("application/json").body(body1)
                     .when().post("/v1/product")
                     .then().statusCode(201);
 
             String body2 = productJson("iPhone2", "Another", dupSku, "Apple", 2);
-            given().auth().basic(username, pwd)
+            given().auth().preemptive().basic(username, pwd)
                     .contentType("application/json").body(body2)
                     .when().post("/v1/product")
                     .then().statusCode(400);
@@ -211,7 +211,7 @@ public class ProductControllerTest extends BaseApiTest {
                     null, "Apple", 10);
 
             given()
-                    .auth().basic(username, pwd)
+                    .auth().preemptive().basic(username, pwd)
                     .contentType("application/json")
                     .body(newProductJson)
                     .when()
@@ -240,7 +240,7 @@ public class ProductControllerTest extends BaseApiTest {
                     }""".formatted(quantity);
 
             given()
-                    .auth().basic(username, pwd)
+                    .auth().preemptive().basic(username, pwd)
                     .contentType("application/json")
                     .body(patchJson)
                     .when()

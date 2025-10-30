@@ -126,7 +126,7 @@ update_system() {
 
 install_common_tools() {
   info "Installing common tools (unzip, tar, curl)..."
-  apt-get install -y unzip tar curl sudo vim iproute2 >/dev/null
+  apt-get install -y unzip tar curl sudo sed vim iproute2 >/dev/null
 }
 
 install_java() {

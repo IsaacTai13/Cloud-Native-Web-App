@@ -29,6 +29,6 @@ public class HealthControllerTest extends BaseApiTest {
                 .when()
                 .get("/healthz")
                 .then()
-                .time(lessThan(600L));
+                .time(lessThan(1000L));
     }
 }

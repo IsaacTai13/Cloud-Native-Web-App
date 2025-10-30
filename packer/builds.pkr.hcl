@@ -1,3 +1,11 @@
+# Render the CloudWatch Agent config on the Packer side (before upload)
+locals {
+  cwagent_config = templatefile("${path.root}/amazon-cloudwatch-agent.json.tmpl", {
+    APP_DIR      = var.shell_env.app_dir
+    SERVICE_NAME = var.shell_env.service_name
+  })
+}
+
 build {
   name    = "csye6225-webapp-image"
   sources = ["source.amazon-ebs.ubuntu"]
@@ -50,6 +58,7 @@ EOC
 cat > /tmp/app.env <<EOT
 DB_CONN_TIMEOUT_MS=$R_DB_CONN_TIMEOUT_MS
 SERVER_PORT=$R_SERVER_PORT
+APP_DIR=$B_APP_DIR
 EOT
 EOC
       ,
@@ -91,6 +100,80 @@ EOC
       ,
       "sudo chmod 0644 /etc/systemd/system/$B_SERVICE_NAME.service",
       "sudo chown root:root /etc/systemd/system/$B_SERVICE_NAME.service"
+    ]
+  }
+
+  # ------------------------------------
+  # Install and configure Amazon CloudWatch Unified Agent
+  # ------------------------------------
+  provisioner "shell" {
+    inline_shebang = "/bin/bash"
+    inline = [
+      "set -euo pipefail",
+      "echo '[INFO] Installing Amazon CloudWatch Agent...'",
+
+      # Download and install (Ubuntu version)
+      "curl -fsSL -o /tmp/amazon-cloudwatch-agent.deb https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb",
+      "sudo dpkg -i /tmp/amazon-cloudwatch-agent.deb",
+
+      # Create configuration directory
+      "sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc",
+    ]
+  }
+
+  # Write the rendered JSON content into a temporary file on the target instance
+  provisioner "shell" {
+    inline_shebang = "/bin/bash"
+    inline = [
+      "set -euo pipefail",
+      "echo '[INFO] Generating cloudwatch agent file...'",
+      <<-EOC
+cat > /tmp/amazon-cloudwatch-agent.json <<'EOF'
+${local.cwagent_config}
+EOF
+EOC
+      ,
+      "if [ -f /tmp/amazon-cloudwatch-agent.json ]; then",
+      "  echo '[SUCCESS] Config file created successfully:'",
+      "  head -n 10 /tmp/amazon-cloudwatch-agent.json",
+      "else",
+      "  echo '[ERROR] Failed to generate /tmp/amazon-cloudwatch-agent.json'; exit 1;",
+      "fi"
+    ]
+  }
+
+  # Move the rendered config file to the official CloudWatch Agent directory
+  provisioner "shell" {
+    inline_shebang = "/bin/bash" # use bash
+    inline = [
+      "set -euo pipefail",
+      "sudo mv /tmp/amazon-cloudwatch-agent.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
+      "sudo chown root:root /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
+      "sudo chmod 0644 /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
+      "sudo systemctl enable amazon-cloudwatch-agent"
+    ]
+  }
+
+  # ------------------------------------
+  # Verify CloudWatch Agent config & ensure log dirs
+  # ------------------------------------
+  provisioner "shell" {
+    inline_shebang = "/bin/bash"
+    environment_vars = [
+      "B_APP_DIR=${var.shell_env.app_dir}",
+      "B_APP_USER=${var.shell_env.app_user}",
+      "B_APP_GROUP=${var.shell_env.app_group}"
+    ]
+    inline = [
+      "set -euo pipefail",
+      "echo '[INFO] Ensuring log directory exists...'",
+      "sudo mkdir -p \"$B_APP_DIR/log\"",
+
+      "echo '[INFO] Starting CloudWatch Agent for config validation...'",
+      "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s || true",
+      "sudo systemctl enable amazon-cloudwatch-agent",
+      "sudo systemctl status amazon-cloudwatch-agent --no-pager || true",
+      "echo '[INFO] CloudWatch Agent validated successfully.'"
     ]
   }
 

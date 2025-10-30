@@ -25,6 +25,16 @@ spring:
     deserialization:
       fail-on-unknown-properties: true
 
+logging:
+  file:
+    name: ${APP_DIR}/log/app.log
+  level:
+    root: INFO
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: OFF
+    org.springframework.web.servlet.handler.AbstractHandlerExceptionResolver: OFF
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger - %msg%n"
+
 aws:
   region: ${AWS_REGION}
   s3:
@@ -36,3 +46,20 @@ server:
     include-message: never
     include-binding-errors: never
     include-stacktrace: never
+
+management:
+  metrics:
+    export:
+      statsd:
+        enabled: true
+        flavor: etsy
+        host: 127.0.0.1
+        port: 8125
+        polling-frequency: 10s
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
