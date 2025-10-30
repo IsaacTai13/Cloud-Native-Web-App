@@ -121,8 +121,6 @@ EOC
     ]
   }
 
-
-
   # Write the rendered JSON content into a temporary file on the target instance
   provisioner "shell" {
     inline_shebang = "/bin/bash"
@@ -146,6 +144,7 @@ EOC
 
   # Move the rendered config file to the official CloudWatch Agent directory
   provisioner "shell" {
+    inline_shebang = "/bin/bash" # use bash
     inline = [
       "set -euo pipefail",
       "sudo mv /tmp/amazon-cloudwatch-agent.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
