@@ -94,6 +94,72 @@ EOC
     ]
   }
 
+  # ------------------------------------
+  # Install and configure Amazon CloudWatch Unified Agent
+  # ------------------------------------
+  provisioner "shell" {
+    inline_shebang = "/bin/bash"
+    inline = [
+      "set -euo pipefail",
+      "echo '[INFO] Installing Amazon CloudWatch Agent...'",
+
+      # Download and install (Ubuntu version)
+      "curl -fsSL -o /tmp/amazon-cloudwatch-agent.deb https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb",
+      "sudo dpkg -i /tmp/amazon-cloudwatch-agent.deb",
+
+      # Create configuration directory
+      "sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc",
+    ]
+  }
+
+  # Copy your custom CloudWatch Agent config into the AMI
+  provisioner "file" {
+    source      = "${path.root}/amazon-cloudwatch-agent.json"
+    destination = "/tmp/amazon-cloudwatch-agent.json"
+  }
+
+  provisioner "shell" {
+    inline_shebang = "/bin/bash"
+    environment_vars = [
+      "B_APP_DIR=${var.shell_env.app_dir}",
+      "B_SERVICE_NAME=${var.shell_env.service_name}"
+    ]
+    inline = [
+      "echo '[INFO] Copying CloudWatch Agent config...'",
+      "sed -e 's|{{LOG_DIR}}|${B_APP_DIR}|g' -e 's|{{SERVICE_NAME}}|${B_SERVICE_NAME}|g' /tmp/amazon-cloudwatch-agent.json > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
+      "sudo chown root:root /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
+      "sudo chmod 0644 /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
+
+      # Enable the agent service for auto-start
+      "sudo systemctl enable amazon-cloudwatch-agent",
+      "echo '[INFO] CloudWatch Agent installed and enabled successfully.'"
+    ]
+  }
+
+  # ------------------------------------
+  # Verify CloudWatch Agent config & ensure log dirs
+  # ------------------------------------
+  provisioner "shell" {
+    inline_shebang = "/bin/bash"
+    environment_vars = [
+      "B_APP_DIR=${var.shell_env.app_dir}",
+      "B_APP_USER=${var.shell_env.app_user}",
+      "B_APP_GROUP=${var.shell_env.app_group}"
+    ]
+    inline = [
+      "echo '[INFO] Ensuring log directory exists...'",
+      "sudo mkdir -p \"${B_APP_DIR}/log\"",
+      "sudo chown -R \"${B_APP_USER}:${B_APP_GROUP}\" \"${B_APP_DIR}\"",
+      "sudo chmod 0755 \"${B_APP_DIR}\"",
+
+      "echo '[INFO] Starting CloudWatch Agent for config validation...'",
+      "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s || true",
+      "sudo systemctl enable amazon-cloudwatch-agent",
+      "sudo systemctl status amazon-cloudwatch-agent --no-pager || true",
+      "echo '[INFO] CloudWatch Agent validated successfully.'"
+    ]
+  }
+
   provisioner "shell" {
     inline_shebang  = "/bin/bash" # use bash
     execute_command = "sudo bash '{{ .Path }}'"
