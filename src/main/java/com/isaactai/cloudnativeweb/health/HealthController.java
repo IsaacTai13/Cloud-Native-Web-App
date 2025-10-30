@@ -1,6 +1,8 @@
 package com.isaactai.cloudnativeweb.health;
 
 import com.isaactai.cloudnativeweb.common.exception.BadRequestException;
+import com.isaactai.cloudnativeweb.logging.AccessLog;
+import com.isaactai.cloudnativeweb.logging.AccessNote;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,17 +28,25 @@ public class HealthController {
     // For general-purpose lightweight health checks under heavy load.
     // Inserts a new record into the database each time.
     // Does not return any response body.
+    @AccessNote(
+            label = "Health",
+            success = "Health check successful",
+            clientWarn = "Health Check failed",
+            serverError = "Unexpected error occurred"
+    )
     @GetMapping("/healthz")
     public ResponseEntity<Void> healthz(
             HttpServletRequest request,
             @RequestParam Map<String, String> queryParams
     ) {
         if (!queryParams.isEmpty()) {
+            AccessLog.clientWarn(request, "Query parameters are not allowed");
             return ResponseEntity.badRequest().build();
         }
 
         try {
             if (request.getInputStream().read() != -1) {
+                AccessLog.clientWarn(request, "Request body is not allowed");
                 return ResponseEntity.badRequest().build();
             }
         } catch (IOException e) {
