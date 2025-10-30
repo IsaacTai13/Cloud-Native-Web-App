@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -39,6 +40,22 @@ public class SecurityConfig {
                 .headers(h -> h
                                 .frameOptions(fo -> fo.disable())
                                 .xssProtection(x -> x.disable())
+                )
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint((req, res, ex) -> {
+                            req.setAttribute("access.label", "Security");
+                            req.setAttribute("error.expected", true);
+                            req.setAttribute("error.code", "UNAUTHORIZED");
+                            req.setAttribute("error.message", "Missing or invalid credentials");
+                            res.sendError(HttpStatus.UNAUTHORIZED.value());
+                        })
+                        .accessDeniedHandler((req, res, ex) -> {
+                            req.setAttribute("access.label", "Security");
+                            req.setAttribute("error.expected", true);
+                            req.setAttribute("error.code", "FORBIDDEN");
+                            req.setAttribute("error.message", "Insufficient permissions");
+                            res.sendError(HttpStatus.FORBIDDEN.value());
+                        })
                 );
         return http.build();
     }
