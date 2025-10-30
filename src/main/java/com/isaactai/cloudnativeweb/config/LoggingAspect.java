@@ -68,8 +68,8 @@ public class LoggingAspect {
             String file = (st.length > 0) ? st[0].getFileName()   : "unknown";
             int    line = (st.length > 0) ? st[0].getLineNumber() : -1;
 
-            logger.info("[END] {} {} !! {}.{}() at {}:{} took={}ms ex={}",
-                    httpMethod, uri, className, methodName, file, line, tookMs, ex.toString());
+            logger.info("[END] {} {} !! {}.{}() at {}:{} took={}ms",
+                    httpMethod, uri, className, methodName, file, line, tookMs);
 
             throw ex; // rethrow such a normal exception handling still applies
         }

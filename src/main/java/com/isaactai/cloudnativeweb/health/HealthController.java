@@ -68,6 +68,10 @@ public class HealthController {
             value = "/healthz",
             method = {RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.PATCH}
     )
+    @AccessNote(
+            label = "Health",
+            clientWarn = "Health Check failed - Method not allowed"
+    )
     public ResponseEntity<Void> healthzWrongMethod() {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
     }
@@ -76,6 +80,12 @@ public class HealthController {
     // Returns a JSON response with service and dependency status.
     // Does not insert a new record into the database.
     @GetMapping(value = "/api/health", produces = MediaType.APPLICATION_JSON_VALUE)
+    @AccessNote(
+            label = "Health",
+            success = "Health probe successful",
+            clientWarn = "Health Probe failed",
+            serverError = "Unexpected error occurred"
+    )
     public ResponseEntity<HealthProbeService.HealthResponse> probe(HttpServletRequest request) {
         try {
             if (request.getInputStream().read() != -1) {

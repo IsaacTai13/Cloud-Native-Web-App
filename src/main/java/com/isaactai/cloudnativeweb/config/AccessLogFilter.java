@@ -57,11 +57,15 @@ public class AccessLogFilter extends OncePerRequestFilter {
             if (status >= 500) {
                 String msg = combine(msgErrGen, msgOverride);
                 Throwable t = (Throwable) req.getAttribute("error.throwable");
+
+                // shortened the msg to prevent too long
+                String inlineMsgShort = abbrev(msg, 220);
+
                 if (t != null) {
                     log.error("{} {} [{}] took={}ms{}{}",
                             method, uri, labelFinal, took,
                             nonBlank(" err=", exName),
-                            nonBlank(" msg=", msg),
+                            nonBlank(" msg=", inlineMsgShort),
                             t);
                 } else {
                     log.error("{} {} [{}] took={}ms{}{}",
@@ -121,5 +125,12 @@ public class AccessLogFilter extends OncePerRequestFilter {
         if (ss == null) return null;
         for (String s : ss) if (isNotBlank(s)) return s;
         return null;
+    }
+
+    private static String abbrev(String s, int max) {
+        if (s == null) return null;
+        s = s.trim();
+        if (s.length() <= max) return s;
+        return s.substring(0, Math.max(0, max - 1)) + "…";
     }
 }

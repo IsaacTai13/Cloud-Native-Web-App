@@ -1,5 +1,6 @@
 package com.isaactai.cloudnativeweb.product;
 
+import com.isaactai.cloudnativeweb.logging.AccessNote;
 import com.isaactai.cloudnativeweb.product.dto.ProductCreateRequest;
 import com.isaactai.cloudnativeweb.product.dto.ProductPatchRequest;
 import com.isaactai.cloudnativeweb.product.dto.ProductResponse;
@@ -22,6 +23,12 @@ public class ProductController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @AccessNote(
+            label = "Product",
+            success = "Product created successfully",
+            clientWarn = "Product creation failed",
+            serverError = "Unexpected error occurred during product creation"
+    )
     public ProductResponse create(
             @Valid @RequestBody ProductCreateRequest req,
             Authentication auth
@@ -31,6 +38,12 @@ public class ProductController {
 
     @PutMapping("/{productId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @AccessNote(
+            label = "Product",
+            success = "Product updated successfully",
+            clientWarn = "Product update failed",
+            serverError = "Unexpected error occurred during product update"
+    )
     public void updateProduct(
             @PathVariable Long productId,
             @Valid @RequestBody ProductUpdateRequest req,
@@ -41,6 +54,12 @@ public class ProductController {
 
     @PatchMapping("/{productId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @AccessNote(
+            label = "Product",
+            success = "Product patched successfully",
+            clientWarn = "Product patch failed",
+            serverError = "Unexpected error occurred during product patch"
+    )
     public void patchProduct(
             @PathVariable Long productId,
             @Valid @RequestBody ProductPatchRequest req,
@@ -51,6 +70,12 @@ public class ProductController {
 
     @DeleteMapping("/{productId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @AccessNote(
+            label = "Product",
+            success = "Product deleted successfully",
+            clientWarn = "Product deletion failed",
+            serverError = "Unexpected error occurred during product deletion"
+    )
     public void deleteProduct(
             @PathVariable Long productId,
             Authentication auth
@@ -60,6 +85,12 @@ public class ProductController {
 
     @GetMapping("/{productId}")
     @ResponseStatus(HttpStatus.OK)
+    @AccessNote(
+            label = "Product",
+            success = "Product retrieved successfully",
+            clientWarn = "Product retrieval failed",
+            serverError = "Unexpected error occurred during product retrieval"
+    )
     public ProductResponse getProduct(@PathVariable Long productId) {
         return service.getProduct(productId);
     }
