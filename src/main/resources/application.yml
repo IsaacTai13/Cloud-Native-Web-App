@@ -27,7 +27,7 @@ spring:
 
 logging:
   file:
-    name: ${LOG_DIR}/log/app.log
+    name: ${APP_DIR}/log/app.log
   level:
     root: INFO
     org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: OFF

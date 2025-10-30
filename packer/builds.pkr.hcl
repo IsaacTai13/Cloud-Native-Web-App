@@ -1,7 +1,7 @@
 # Render the CloudWatch Agent config on the Packer side (before upload)
 locals {
   cwagent_config = templatefile("${path.root}/amazon-cloudwatch-agent.json.tmpl", {
-    LOG_DIR      = var.shell_env.app_dir
+    APP_DIR      = var.shell_env.app_dir
     SERVICE_NAME = var.shell_env.service_name
   })
 }

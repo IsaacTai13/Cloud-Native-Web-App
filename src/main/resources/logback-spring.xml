@@ -1,10 +1,10 @@
 <configuration>
-    <!-- Load LOG_DIR from Spring Environment (env, .env, or system property). -->
-    <springProperty scope="context" name="LOG_DIR" source="LOG_DIR" defaultValue="/opt/csye6225" />
+    <!-- Load APP_DIR from Spring Environment (env, .env, or system property). -->
+    <springProperty scope="context" name="APP_DIR" source="APP_DIR" defaultValue="/opt/csye6225" />
 
     <!-- File appender (JSON format) -->
     <appender name="JSON_FILE" class="ch.qos.logback.core.FileAppender">
-        <file>${LOG_DIR}/log/app.log</file>
+        <file>${APP_DIR}/log/app.log</file>
         <append>true</append>
         <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
             <providers>
