@@ -168,8 +168,6 @@ EOC
       "set -euo pipefail",
       "echo '[INFO] Ensuring log directory exists...'",
       "sudo mkdir -p \"$B_APP_DIR/log\"",
-      "sudo chown -R \"$B_APP_USER:$B_APP_GROUP\" \"$B_APP_DIR\"",
-      "sudo chmod 0755 \"$B_APP_DIR\"",
 
       "echo '[INFO] Starting CloudWatch Agent for config validation...'",
       "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s || true",
