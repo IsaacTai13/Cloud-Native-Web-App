@@ -1,3 +1,11 @@
+# Render the CloudWatch Agent config on the Packer side (before upload)
+locals {
+  cwagent_config = templatefile("${path.root}/amazon-cloudwatch-agent.json.tmpl", {
+    LOG_DIR      = var.shell_env.app_dir
+    SERVICE_NAME = var.shell_env.service_name
+  })
+}
+
 build {
   name    = "csye6225-webapp-image"
   sources = ["source.amazon-ebs.ubuntu"]
@@ -112,27 +120,23 @@ EOC
     ]
   }
 
-  # Copy your custom CloudWatch Agent config into the AMI
-  provisioner "file" {
-    source      = "${path.root}/amazon-cloudwatch-agent.json"
-    destination = "/tmp/amazon-cloudwatch-agent.json"
-  }
 
+
+  # Write the rendered JSON content into a temporary file on the target instance
   provisioner "shell" {
     inline_shebang = "/bin/bash"
-    environment_vars = [
-      "B_APP_DIR=${var.shell_env.app_dir}",
-      "B_SERVICE_NAME=${var.shell_env.service_name}"
-    ]
     inline = [
-      "echo '[INFO] Copying CloudWatch Agent config...'",
-      "sed -e 's|{{LOG_DIR}}|${B_APP_DIR}|g' -e 's|{{SERVICE_NAME}}|${B_SERVICE_NAME}|g' /tmp/amazon-cloudwatch-agent.json > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
+      "cat > /tmp/amazon-cloudwatch-agent.json <<'EOF'\n${local.cwagent_config}\nEOF"
+    ]
+  }
+
+  # Move the rendered config file to the official CloudWatch Agent directory
+  provisioner "shell" {
+    inline = [
+      "sudo mv /tmp/amazon-cloudwatch-agent.json /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
       "sudo chown root:root /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
       "sudo chmod 0644 /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json",
-
-      # Enable the agent service for auto-start
-      "sudo systemctl enable amazon-cloudwatch-agent",
-      "echo '[INFO] CloudWatch Agent installed and enabled successfully.'"
+      "sudo systemctl enable amazon-cloudwatch-agent"
     ]
   }
 
@@ -148,9 +152,9 @@ EOC
     ]
     inline = [
       "echo '[INFO] Ensuring log directory exists...'",
-      "sudo mkdir -p \"${B_APP_DIR}/log\"",
-      "sudo chown -R \"${B_APP_USER}:${B_APP_GROUP}\" \"${B_APP_DIR}\"",
-      "sudo chmod 0755 \"${B_APP_DIR}\"",
+      "sudo mkdir -p \"$B_APP_DIR/log\"",
+      "sudo chown -R \"$B_APP_USER:$B_APP_GROUP\" \"$B_APP_DIR\"",
+      "sudo chmod 0755 \"$B_APP_DIR\"",
 
       "echo '[INFO] Starting CloudWatch Agent for config validation...'",
       "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json -s || true",

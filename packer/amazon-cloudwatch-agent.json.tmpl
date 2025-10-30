@@ -9,15 +9,15 @@
       "files": {
         "collect_list": [
           {
-            "file_path": "{{LOG_DIR}}/log/app.log",
-            "log_group_name": "/{{SERVICE_NAME}}/app",
+            "file_path": "${LOG_DIR}/log/app.log",
+            "log_group_name": "/${SERVICE_NAME}/app",
             "log_stream_name": "{instance_id}",
             "retention_in_days": 14,
             "multi_line_start_pattern": "^{"
           },
           {
-            "file_path": "{{LOG_DIR}}/log/access.log",
-            "log_group_name": "/{{SERVICE_NAME}}/access",
+            "file_path": "${LOG_DIR}/log/access.log",
+            "log_group_name": "/${SERVICE_NAME}/access",
             "log_stream_name": "{instance_id}",
             "retention_in_days": 14,
             "multi_line_start_pattern": "^{"
@@ -31,8 +31,8 @@
 
   "metrics": {
     "append_dimensions": {
-      "InstanceId": "${aws:InstanceId}",
-      "AutoScalingGroupName": "${aws:AutoScalingGroupName}"
+      "InstanceId": "$${aws:InstanceId}",
+      "AutoScalingGroupName": "$${aws:AutoScalingGroupName}"
     },
     "metrics_collected": {
       "cpu": {
