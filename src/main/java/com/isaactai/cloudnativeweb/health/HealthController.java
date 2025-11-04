@@ -3,6 +3,7 @@ package com.isaactai.cloudnativeweb.health;
 import com.isaactai.cloudnativeweb.common.exception.BadRequestException;
 import com.isaactai.cloudnativeweb.logging.AccessLog;
 import com.isaactai.cloudnativeweb.logging.AccessNote;
+import com.isaactai.cloudnativeweb.metrics.ApiObserved;
 import io.micrometer.core.annotation.Timed;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,7 @@ public class HealthController {
             serverError = "Unexpected error occurred"
     )
     @GetMapping("/healthz")
+    @ApiObserved
     public ResponseEntity<Void> healthz(
             HttpServletRequest request,
             @RequestParam Map<String, String> queryParams
@@ -73,6 +75,7 @@ public class HealthController {
             label = "Health",
             clientWarn = "Health Check failed - Method not allowed"
     )
+    @ApiObserved
     public ResponseEntity<Void> healthzWrongMethod() {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).build();
     }
@@ -87,6 +90,7 @@ public class HealthController {
             clientWarn = "Health Probe failed",
             serverError = "Unexpected error occurred"
     )
+    @ApiObserved
     public ResponseEntity<HealthProbeService.HealthResponse> probe(HttpServletRequest request) {
         try {
             if (request.getInputStream().read() != -1) {

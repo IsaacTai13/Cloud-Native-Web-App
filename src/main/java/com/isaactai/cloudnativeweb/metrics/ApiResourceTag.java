@@ -1,4 +1,4 @@
-package com.isaactai.cloudnativeweb.config;
+package com.isaactai.cloudnativeweb.metrics;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

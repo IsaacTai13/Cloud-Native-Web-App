@@ -1,12 +1,12 @@
 package com.isaactai.cloudnativeweb.product;
 
-import com.isaactai.cloudnativeweb.config.ApiResourceTag;
+import com.isaactai.cloudnativeweb.metrics.ApiObserved;
+import com.isaactai.cloudnativeweb.metrics.ApiResourceTag;
 import com.isaactai.cloudnativeweb.logging.AccessNote;
 import com.isaactai.cloudnativeweb.product.dto.ProductCreateRequest;
 import com.isaactai.cloudnativeweb.product.dto.ProductPatchRequest;
 import com.isaactai.cloudnativeweb.product.dto.ProductResponse;
 import com.isaactai.cloudnativeweb.product.dto.ProductUpdateRequest;
-import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,6 +32,7 @@ public class ProductController {
             clientWarn = "Product creation failed",
             serverError = "Unexpected error occurred during product creation"
     )
+    @ApiObserved
     public ProductResponse create(
             @Valid @RequestBody ProductCreateRequest req,
             Authentication auth
@@ -47,6 +48,7 @@ public class ProductController {
             clientWarn = "Product update failed",
             serverError = "Unexpected error occurred during product update"
     )
+    @ApiObserved
     public void updateProduct(
             @PathVariable Long productId,
             @Valid @RequestBody ProductUpdateRequest req,
@@ -63,6 +65,7 @@ public class ProductController {
             clientWarn = "Product patch failed",
             serverError = "Unexpected error occurred during product patch"
     )
+    @ApiObserved
     public void patchProduct(
             @PathVariable Long productId,
             @Valid @RequestBody ProductPatchRequest req,
@@ -79,6 +82,7 @@ public class ProductController {
             clientWarn = "Product deletion failed",
             serverError = "Unexpected error occurred during product deletion"
     )
+    @ApiObserved
     public void deleteProduct(
             @PathVariable Long productId,
             Authentication auth
@@ -94,6 +98,7 @@ public class ProductController {
             clientWarn = "Product retrieval failed",
             serverError = "Unexpected error occurred during product retrieval"
     )
+    @ApiObserved
     public ProductResponse getProduct(@PathVariable Long productId) {
         return service.getProduct(productId);
     }
