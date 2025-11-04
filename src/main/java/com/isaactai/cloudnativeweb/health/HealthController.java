@@ -35,7 +35,6 @@ public class HealthController {
             clientWarn = "Health Check failed",
             serverError = "Unexpected error occurred"
     )
-    @Timed(value = "api.healthz", description = "Time taken to respond to /healthz requests")
     @GetMapping("/healthz")
     public ResponseEntity<Void> healthz(
             HttpServletRequest request,

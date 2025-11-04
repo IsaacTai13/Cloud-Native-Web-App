@@ -1,5 +1,6 @@
 package com.isaactai.cloudnativeweb.user;
 
+import com.isaactai.cloudnativeweb.config.ApiResourceTag;
 import com.isaactai.cloudnativeweb.logging.AccessNote;
 import com.isaactai.cloudnativeweb.user.dto.UserCreateRequest;
 import com.isaactai.cloudnativeweb.user.dto.UserResponse;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/v1/user")
+@ApiResourceTag(resource = "User")
 public class UserController {
     private final UserService userService;
 
@@ -31,7 +33,6 @@ public class UserController {
             clientWarn = "User create failed",
             serverError = "Unexpected error occurred during user creation"
     )
-    @Timed(value = "api.user.create", description = "Time taken to create a new user")
     public ResponseEntity<UserResponse> create(@Valid @RequestBody UserCreateRequest req) {
         UserResponse created = userService.createUser(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -44,7 +45,6 @@ public class UserController {
             clientWarn = "User update failed",
             serverError = "Unexpected error occurred during user update"
     )
-    @Timed(value = "api.user.update", description = "Time taken to update a user")
     public ResponseEntity<Void> updateUser(
             @PathVariable int userId,
             @Valid @RequestBody UserUpdateRequest req,
@@ -61,7 +61,6 @@ public class UserController {
             clientWarn = "User retrieval failed",
             serverError = "Unexpected error occurred during user retrieval"
     )
-    @Timed(value = "api.user.get", description = "Time taken to retrieve a user")
     public ResponseEntity<UserResponse> getUser(
             @PathVariable int userId,
             Authentication auth) {
