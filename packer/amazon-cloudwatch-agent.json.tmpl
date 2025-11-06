@@ -3,7 +3,6 @@
     "metrics_collection_interval": 60,
     "logfile": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log"
   },
-
   "logs": {
     "logs_collected": {
       "files": {
@@ -30,6 +29,7 @@
   },
 
   "metrics": {
+    "namespace": "CSYE6225_WebApp",
     "append_dimensions": {
       "InstanceId": "$${aws:InstanceId}",
       "AutoScalingGroupName": "$${aws:AutoScalingGroupName}"
@@ -53,6 +53,10 @@
           {"name": "disk_used_percent", "rename": "DiskUsage", "unit": "Percent"}
         ],
         "metrics_collection_interval": 300
+      },
+      "statsd": {
+        "service_address": ":8125",
+        "metrics_collection_interval": 60
       }
     }
   }

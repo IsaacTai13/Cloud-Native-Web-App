@@ -47,8 +47,14 @@ server:
     include-binding-errors: never
     include-stacktrace: never
 
+
 management:
   metrics:
+    web:
+      server:
+        request:
+          autotime:
+            enabled: false
     export:
       statsd:
         enabled: true

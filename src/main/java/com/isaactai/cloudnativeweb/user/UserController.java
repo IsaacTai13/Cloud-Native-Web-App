@@ -1,12 +1,12 @@
 package com.isaactai.cloudnativeweb.user;
 
+import com.isaactai.cloudnativeweb.metrics.ApiObserved;
+import com.isaactai.cloudnativeweb.metrics.ApiResourceTag;
 import com.isaactai.cloudnativeweb.logging.AccessNote;
 import com.isaactai.cloudnativeweb.user.dto.UserCreateRequest;
 import com.isaactai.cloudnativeweb.user.dto.UserResponse;
 import com.isaactai.cloudnativeweb.user.dto.UserUpdateRequest;
-import io.micrometer.core.annotation.Timed;
 import jakarta.validation.Valid;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/v1/user")
+@ApiResourceTag(resource = "User")
 public class UserController {
     private final UserService userService;
 
@@ -31,7 +32,7 @@ public class UserController {
             clientWarn = "User create failed",
             serverError = "Unexpected error occurred during user creation"
     )
-    @Timed(value = "api.user.create", description = "Time taken to create a new user")
+    @ApiObserved
     public ResponseEntity<UserResponse> create(@Valid @RequestBody UserCreateRequest req) {
         UserResponse created = userService.createUser(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -44,7 +45,7 @@ public class UserController {
             clientWarn = "User update failed",
             serverError = "Unexpected error occurred during user update"
     )
-    @Timed(value = "api.user.update", description = "Time taken to update a user")
+    @ApiObserved
     public ResponseEntity<Void> updateUser(
             @PathVariable int userId,
             @Valid @RequestBody UserUpdateRequest req,
@@ -61,7 +62,7 @@ public class UserController {
             clientWarn = "User retrieval failed",
             serverError = "Unexpected error occurred during user retrieval"
     )
-    @Timed(value = "api.user.get", description = "Time taken to retrieve a user")
+    @ApiObserved
     public ResponseEntity<UserResponse> getUser(
             @PathVariable int userId,
             Authentication auth) {

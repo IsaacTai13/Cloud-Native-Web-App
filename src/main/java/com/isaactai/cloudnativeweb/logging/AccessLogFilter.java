@@ -1,4 +1,4 @@
-package com.isaactai.cloudnativeweb.config;
+package com.isaactai.cloudnativeweb.logging;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

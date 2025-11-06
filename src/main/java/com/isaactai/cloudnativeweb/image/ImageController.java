@@ -1,8 +1,9 @@
 package com.isaactai.cloudnativeweb.image;
 
+import com.isaactai.cloudnativeweb.metrics.ApiResourceTag;
 import com.isaactai.cloudnativeweb.image.dto.ImageResponse;
 import com.isaactai.cloudnativeweb.logging.AccessNote;
-import io.micrometer.core.annotation.Timed;
+import com.isaactai.cloudnativeweb.metrics.S3Observed;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1/product/{product_id}/image")
 @RequiredArgsConstructor
+@ApiResourceTag(resource = "Image")
 public class ImageController {
     private final ImageService service;
 
@@ -29,7 +31,7 @@ public class ImageController {
             clientWarn = "Image upload failed",
             serverError = "Unexpected error occurred during image upload"
     )
-    @Timed(value = "api.image.upload", description = "Time taken to upload an image")
+    @S3Observed
     public ImageResponse uploadImage(
             @PathVariable("product_id") Long productId,
             @RequestParam("file") MultipartFile file,
@@ -46,7 +48,7 @@ public class ImageController {
             clientWarn = "Image deletion failed",
             serverError = "Unexpected error occurred during image deletion"
     )
-    @Timed(value = "api.image.delete", description = "Time taken to delete an image")
+    @S3Observed
     public void deleteImage(
             @PathVariable("product_id") Long productId,
             @PathVariable("image_id") Long imageId,
@@ -63,7 +65,7 @@ public class ImageController {
             clientWarn = "Image listing failed",
             serverError = "Unexpected error occurred during image listing"
     )
-    @Timed(value = "api.image.list", description = "Time taken to list images for a product")
+    @S3Observed
     public List<ImageResponse> listImages(
             @PathVariable("product_id") Long productId
     ) {
@@ -78,7 +80,7 @@ public class ImageController {
             clientWarn = "Image retrieval failed",
             serverError = "Unexpected error occurred during image retrieval"
     )
-    @Timed(value = "api.image.get", description = "Time taken to get image details")
+    @S3Observed
     public ImageResponse getImage(
             @PathVariable("product_id") Long productId,
             @PathVariable("image_id") Long imageId
