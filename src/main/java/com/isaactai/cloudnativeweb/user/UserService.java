@@ -1,5 +1,6 @@
 package com.isaactai.cloudnativeweb.user;
 
+import com.isaactai.cloudnativeweb.messaging.SnsPublisher;
 import com.isaactai.cloudnativeweb.user.dto.UserCreateRequest;
 import com.isaactai.cloudnativeweb.user.dto.UserResponse;
 import com.isaactai.cloudnativeweb.user.dto.UserUpdateRequest;
@@ -25,6 +26,7 @@ public class UserService {
     private final UserRepository userRepo;
     private final PasswordEncoder encoder;
     private final EmailVerificationService emailVerificationService;
+    private final SnsPublisher snsPublisher;
 
     @Transactional
     public UserResponse createUser(UserCreateRequest req) {
@@ -42,7 +44,8 @@ public class UserService {
 
         User saved = userRepo.save(newUser);
 
-        UUID token = emailVerificationService.issueToken(newUser.getUsername(), Instant.now());
+        UUID token = emailVerificationService.issueToken(newUser.getUsername(), Instant.now().plusSeconds(5));
+        snsPublisher.publishEmailVerification(newUser.getUsername(), token.toString());
 
         return new UserResponse(
                 saved.getId(),
