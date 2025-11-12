@@ -7,22 +7,24 @@ import com.isaactai.cloudnativeweb.common.exception.BadRequestException;
 import com.isaactai.cloudnativeweb.user.exception.DuplicateEmailException;
 import com.isaactai.cloudnativeweb.common.exception.ForbiddenException;
 import com.isaactai.cloudnativeweb.common.exception.NotFoundException;
+import com.isaactai.cloudnativeweb.user.verification.EmailVerificationService;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.util.UUID;
 
 /**
  * @author tisaac
  */
 @Service
+@AllArgsConstructor
 public class UserService {
     private final UserRepository userRepo;
     private final PasswordEncoder encoder;
-
-    public UserService(UserRepository userRepo, PasswordEncoder encoder) {
-        this.userRepo = userRepo;
-        this.encoder = encoder;
-    }
+    private final EmailVerificationService emailVerificationService;
 
     @Transactional
     public UserResponse createUser(UserCreateRequest req) {
@@ -40,6 +42,8 @@ public class UserService {
 
         User saved = userRepo.save(newUser);
 
+        UUID token = emailVerificationService.issueToken(newUser.getUsername(), Instant.now());
+
         return new UserResponse(
                 saved.getId(),
                 saved.getFirstName(),
@@ -53,8 +57,7 @@ public class UserService {
     @Transactional
     public void updateSelf(int userId, String authUsername, UserUpdateRequest req) {
         // find curr login user
-        User me = userRepo.findByUsername(authUsername)
-                .orElseThrow(() -> new NotFoundException("user not found"));
+        User me = getByUsername(authUsername);
 
         // confirm only can modify itself
         if (me.getId() != userId) {
@@ -85,8 +88,7 @@ public class UserService {
     }
 
     public UserResponse getSelf(int userId, String authUsername) {
-        User me = userRepo.findByUsername(authUsername)
-                .orElseThrow(() -> new NotFoundException("auth user not found"));
+        User me = getByUsername(authUsername);
 
         if (me.getId() != userId) {
             throw new ForbiddenException("Action Forbidden");
@@ -102,7 +104,6 @@ public class UserService {
         );
     }
 
-    @Transactional
     public User getByUsername(String username) {
         return userRepo.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found"));
