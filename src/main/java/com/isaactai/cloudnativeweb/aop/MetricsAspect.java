@@ -1,4 +1,4 @@
-package com.isaactai.cloudnativeweb.config;
+package com.isaactai.cloudnativeweb.aop;
 
 import com.isaactai.cloudnativeweb.metrics.ApiObserved;
 import com.isaactai.cloudnativeweb.metrics.ApiResourceTag;
