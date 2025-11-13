@@ -1,0 +1,59 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-create-email-verification-outbox
+      author: isaac
+      changes:
+        - createTable:
+            tableName: email_verification_outbox
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_email_verification_outbox
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                  # The recipient email address for the verification message.
+              - column:
+                  name: token
+                  type: UUID
+                  constraints:
+                    nullable: false
+                  # The verification token associated with this email.
+                  # Stored so the background worker knows which token to send.
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+                  # Timestamp indicating when this outbox event was created.
+                  # Inserted together with the user record in the same DB transaction.
+
+              - column:
+                  name: sent_at
+                  type: TIMESTAMPTZ
+                  constraints:
+                    nullable: true
+                  # The timestamp when the verification email was successfully sent via SNS.
+                  # Populated by the background outbox processor only after SNS publish succeeds.
+
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+                  # Processing state of this outbox event.
+                  # Typical values: "PENDING", "SENT", "FAILED", or other retryable states.
+
+              - column:
+                  name: retry_count
+                  type: INT
+                  defaultValueNumeric: 0
+                  # Number of attempts made by the background processor to send this event.
+                  # Used to limit retries or diagnose failures.

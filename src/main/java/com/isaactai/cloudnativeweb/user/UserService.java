@@ -44,8 +44,7 @@ public class UserService {
 
         User saved = userRepo.save(newUser);
 
-        UUID token = emailVerificationService.issueToken(newUser.getUsername(), Instant.now().plusSeconds(5));
-        snsPublisher.publishEmailVerification(newUser.getUsername(), token.toString());
+        emailVerificationService.enqueueVerificationEmail(newUser);
 
         return new UserResponse(
                 saved.getId(),

@@ -76,6 +76,12 @@ public class UserController {
     }
 
     @GetMapping("/validateEmail")
+    @AccessNote(
+            label = "User",
+            success = "User email varification successfully",
+            clientWarn = "Email varification failed",
+            serverError = "Unexpected error occurred during user retrieval"
+    )
     public ResponseEntity<Map<String, String>> validateEmail(
             @RequestParam("email") String mail,
             @RequestParam("token") String token

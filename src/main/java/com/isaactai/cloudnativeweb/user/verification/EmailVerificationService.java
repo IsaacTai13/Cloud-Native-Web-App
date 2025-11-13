@@ -5,12 +5,10 @@ import com.isaactai.cloudnativeweb.common.exception.ForbiddenException;
 import com.isaactai.cloudnativeweb.common.exception.NotFoundException;
 import com.isaactai.cloudnativeweb.user.User;
 import com.isaactai.cloudnativeweb.user.UserRepository;
-import com.isaactai.cloudnativeweb.user.UserService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -21,16 +19,22 @@ import java.util.UUID;
 @AllArgsConstructor
 public class EmailVerificationService {
     private final UserRepository userRepo;
-    private static final Duration TOKEN_TTL = Duration.ofMinutes(1);
+    private final EmailVerificationOutboxRepository outboxRepo;
 
     @Transactional
-    public UUID issueToken(String username, Instant now) {
-        User u = getByUsername(username);
+    public void enqueueVerificationEmail(User user) {
+
         UUID token = UUID.randomUUID();
-        u.setEmailVerified(false);
-        u.setVerificationToken(token);
-        u.setTokenGenerateAt(now);
-        return token;
+        user.setVerificationToken(token);
+        user.setTokenGenerateAt(null); // sentAt will be set when the email is actually sent
+
+        // 2. write to outbox（same transaction）
+        EmailVerificationOutbox event = new EmailVerificationOutbox();
+        event.setEmail(user.getUsername());
+        event.setToken(token);
+        event.setCreatedAt(Instant.now());
+        event.setStatus("PENDING");
+        outboxRepo.save(event);
     }
 
     @Transactional
@@ -39,13 +43,17 @@ public class EmailVerificationService {
         User u = getByUsername(username);
 
         UUID userToken = u.getVerificationToken();
-        if (u.getVerificationToken() == null || !u.getVerificationToken().equals(token)) {
+        if (userToken == null || !userToken.equals(token)) {
             throw new ForbiddenException("Token mismatch");
         }
 
         // check if expired
-        Instant tokenGenerate = u.getTokenGenerateAt();
-        if (tokenGenerate == null || now.isAfter(tokenGenerate.plusSeconds(60))) {
+        Instant sentAt = u.getTokenGenerateAt();
+        if (sentAt == null) {
+            throw new ForbiddenException("Token not sent yet");
+        }
+
+        if (now.isAfter(sentAt.plusSeconds(60))) {
             throw new ForbiddenException("Token expired");
         }
 
@@ -63,7 +71,7 @@ public class EmailVerificationService {
         }
     }
 
-    private User getByUsername(String username) {
+    protected User getByUsername(String username) {
         return userRepo.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found"));
     }
