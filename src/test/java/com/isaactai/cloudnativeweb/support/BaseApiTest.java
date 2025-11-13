@@ -19,6 +19,12 @@ public abstract class BaseApiTest {
     @MockBean
     private software.amazon.awssdk.services.s3.S3Client s3Client;
 
+    @MockBean
+    private com.isaactai.cloudnativeweb.config.S3Config s3Config;
+
+    @MockBean
+    private com.isaactai.cloudnativeweb.messaging.SnsPublisher snsPublisher;
+
     @LocalServerPort
     int port;
 

@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-add-email-verification
+      author: isaac
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: email_verified
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: verification_token
+                  type: UUID
+              - column:
+                  name: verification_token_generated_at
+                  type: TIMESTAMPTZ
+  - changeSet:
+      id: 006a-unique-verification-token
+      author: isaac
+      changes:
+        - sql:
+            dbms: postgresql
+            sql: >
+              CREATE UNIQUE INDEX IF NOT EXISTS uq_users_verification_token_notnull
+              ON users(verification_token)
+              WHERE verification_token IS NOT NULL;

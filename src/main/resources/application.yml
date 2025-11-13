@@ -39,6 +39,8 @@ aws:
   region: ${AWS_REGION}
   s3:
     bucket: ${S3_BUCKET}
+  sns:
+    topicArn: ${SNS_TOPIC_ARN}
 
 server:
   port: ${SERVER_PORT:8081}

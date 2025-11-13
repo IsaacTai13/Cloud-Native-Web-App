@@ -8,4 +8,8 @@ databaseChangeLog:
   - include:
       file: db/changelog/changes/004-alter-products.yml
   - include:
-      file: db/changelog/changes/005-create-images.yaml
+      file: db/changelog/changes/005-create-images.yml
+  - include:
+      file: db/changelog/changes/006-add-email-verification.yml
+  - include:
+      file: db/changelog/changes/007-create-email-verification-outbox.yml

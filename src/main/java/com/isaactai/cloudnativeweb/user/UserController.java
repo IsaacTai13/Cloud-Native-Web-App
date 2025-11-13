@@ -6,11 +6,17 @@ import com.isaactai.cloudnativeweb.logging.AccessNote;
 import com.isaactai.cloudnativeweb.user.dto.UserCreateRequest;
 import com.isaactai.cloudnativeweb.user.dto.UserResponse;
 import com.isaactai.cloudnativeweb.user.dto.UserUpdateRequest;
+import com.isaactai.cloudnativeweb.user.verification.EmailVerificationService;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author tisaac
@@ -18,12 +24,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/v1/user")
 @ApiResourceTag(resource = "User")
+@AllArgsConstructor
 public class UserController {
     private final UserService userService;
-
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    private final EmailVerificationService emailVerificationService;
 
     @PostMapping()
     @AccessNote(
@@ -69,5 +73,20 @@ public class UserController {
 
         UserResponse me = userService.getSelf(userId, auth.getName());
         return ResponseEntity.ok(me);
+    }
+
+    @GetMapping("/validateEmail")
+    @AccessNote(
+            label = "User",
+            success = "User email varification successfully",
+            clientWarn = "Email varification failed",
+            serverError = "Unexpected error occurred during user retrieval"
+    )
+    public ResponseEntity<Map<String, String>> validateEmail(
+            @RequestParam("email") String mail,
+            @RequestParam("token") String token
+    ){
+        emailVerificationService.verify(mail, token, Instant.now());
+        return ResponseEntity.ok(Map.of("message", "Email verified"));
     }
 }

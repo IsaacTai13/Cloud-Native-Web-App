@@ -19,10 +19,6 @@ build {
     inline_shebang = "/bin/bash" # use bash
 
     environment_vars = [
-      "B_DB_TYPE=${var.shell_env.db_type}",
-      "B_DB_NAME=${var.shell_env.db_name}",
-      "B_DB_USER=${var.shell_env.db_user}",
-      "B_DB_PASS=${var.shell_env.db_pass}",
       "B_APP_GROUP=${var.shell_env.app_group}",
       "B_APP_USER=${var.shell_env.app_user}",
       "B_APP_DIR=${var.shell_env.app_dir}",
@@ -31,8 +27,6 @@ build {
       "B_SERVICE_NAME=${var.shell_env.service_name}",
 
       # run-time (app.env)
-      "R_DB_HOST=${var.web_env.db_host}",
-      "R_DB_PORT=${var.web_env.db_port}",
       "R_DB_CONN_TIMEOUT_MS=${var.web_env.db_conn_timeout_ms}",
       "R_SERVER_PORT=${var.web_env.server_port}",
     ]
@@ -183,4 +177,6 @@ EOC
     execute_command = "sudo bash '{{ .Path }}'"
     script          = "${path.root}/../scripts/setup.sh"
   }
+
+  post-processor "manifest" {}
 }

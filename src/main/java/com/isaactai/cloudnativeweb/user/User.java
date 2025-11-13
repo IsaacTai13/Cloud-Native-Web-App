@@ -2,10 +2,9 @@ package com.isaactai.cloudnativeweb.user;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * @author tisaac
@@ -40,6 +39,15 @@ public class User {
 
     @Column(name = "account_updated", nullable = false)
     private Instant updatedTime;
+
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
+
+    @Column(name = "verification_token", columnDefinition = "uuid")
+    private UUID verificationToken;
+
+    @Column(name = "verification_token_generated_at")
+    private Instant tokenGenerateAt;
 
     @PrePersist
     void onCreate() {
