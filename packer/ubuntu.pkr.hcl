@@ -19,9 +19,6 @@ source "amazon-ebs" "ubuntu" {
   ami_description = "Custom AMI with web app and local DB"
   ami_users       = [var.demo_account_id]
 
-  vpc_id                      = var.vpc_id
-  subnet_id                   = var.subnet_id
-  security_group_id           = var.security_group_id
   associate_public_ip_address = true
 
   source_ami_filter {

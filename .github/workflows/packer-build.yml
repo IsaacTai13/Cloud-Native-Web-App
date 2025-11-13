@@ -111,10 +111,6 @@ jobs:
       # --- App / DB config ---
       PKR_VAR_shell_env: >-
         {
-          "db_type": "${{ vars.DB_TYPE }}",
-          "db_name": "${{ vars.DB_NAME }}",
-          "db_user": "${{ vars.DB_USERNAME }}",
-          "db_pass": "${{ secrets.DB_PASSWORD }}",
           "app_group": "${{ vars.APP_GROUP }}",
           "app_user": "${{ vars.APP_USER }}",
           "app_dir": "${{ vars.APP_DIR }}",
@@ -126,11 +122,12 @@ jobs:
 
       PKR_VAR_web_env: >-
         {
-          "db_host": "${{ vars.DB_HOST }}",
-          "db_port": "${{ vars.DB_PORT }}",
           "db_conn_timeout_ms": "${{ vars.DB_CONN_TIMEOUT_MS }}",
           "server_port": "${{ vars.SERVER_PORT }}"
         }
+
+    outputs:
+      ami_id: ${{ steps.extract.outputs.ami_id }}
 
     steps:
       - name: Checkout
@@ -150,8 +147,8 @@ jobs:
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
           aws-region:            ${{ vars.AWS_REGION }}
 
       - name: Versions
@@ -166,6 +163,102 @@ jobs:
           packer init .
           packer validate .
 
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
       - name: Packer build
         working-directory: packer
         run: packer build .
+
+      - name: Extract AMI ID
+        id: extract
+        working-directory: packer
+        run: |
+          AMI_ID=$(jq -r '.builds[0].artifact_id | split(":")[1]' manifest.json)
+          echo "AMI_ID=$AMI_ID"
+          echo "ami_id=$AMI_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Share AMI with Demo account
+        run: |
+          aws ec2 modify-image-attribute \
+            --image-id ${{ steps.extract.outputs.ami_id }} \
+            --launch-permission "Add=[{UserId=${{ vars.DEMO_ACCOUNT_ID }}}]"
+
+
+  deploy-demo:
+    runs-on: ubuntu-latest
+    needs: packer-build
+
+    env:
+      AMI_ID: ${{ needs.packer-build.outputs.ami_id }}
+      ASG_NAME: ${{ vars.DEMO_ASG_NAME }}
+      LAUNCH_TEMPLATE_ID: ${{ vars.DEMO_LT_ID }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+
+    steps:
+      - name: Configure AWS (Demo)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEMO }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEMO }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Create new Launch Template version
+        # The last Export as env var for later steps if needed
+        run: |
+          NEW_VERSION=$(aws ec2 create-launch-template-version \
+            --launch-template-id "$LAUNCH_TEMPLATE_ID" \
+            --source-version '$Latest' \
+            --launch-template-data "{\"ImageId\":\"$AMI_ID\"}" \
+            --query 'LaunchTemplateVersion.VersionNumber' \
+            --output text)
+
+          echo "NEW_VERSION=$NEW_VERSION"
+          echo "NEW_VERSION=$NEW_VERSION" >> "$GITHUB_ENV"
+
+      # Point the Auto Scaling Group to the latest Launch Template version
+      - name: Update ASG to use latest Launch Template version
+        run: |
+          aws autoscaling update-auto-scaling-group \
+            --auto-scaling-group-name "$ASG_NAME" \
+            --launch-template "LaunchTemplateId=$LAUNCH_TEMPLATE_ID",Version='$Latest'
+
+      # Start an instance refresh so the ASG gradually replaces old instances with new AMI
+      - name: Start ASG instance refresh
+        id: start-refresh
+        run: |
+          REFRESH_ID=$(aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name "$ASG_NAME" \
+            --query 'InstanceRefreshId' \
+            --output text)
+
+          echo "REFRESH_ID=$REFRESH_ID"
+          echo "REFRESH_ID=$REFRESH_ID" >> "$GITHUB_OUTPUT"
+
+      # Execute instance refresh and wait for it
+      # Poll the instance refresh status until it completes or fails
+      - name: Wait for instance refresh to complete
+        run: |
+          REFRESH_ID="${{ steps.start-refresh.outputs.REFRESH_ID }}"
+
+          while true; do
+            STATUS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name "$ASG_NAME" \
+              --instance-refresh-ids "$REFRESH_ID" \
+              --query 'InstanceRefreshes[0].Status' \
+              --output text)
+
+            echo "Current status: $STATUS"
+
+            if [ "$STATUS" = "Successful" ]; then
+              echo "Instance refresh completed."
+              break
+            elif [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ]; then
+              echo "Instance refresh failed or was cancelled."
+              exit 1
+            fi
+
+            sleep 30
+          done
