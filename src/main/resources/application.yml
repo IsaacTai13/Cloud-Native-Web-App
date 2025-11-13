@@ -40,7 +40,7 @@ aws:
   s3:
     bucket: ${S3_BUCKET}
   sns:
-    topicArn: arn:aws:sns:${AWS_REGION}:${ACCOUNT_ID}:${TOPIC_NAME}
+    topicArn: ${SNS_TOPIC_ARN}
 
 server:
   port: ${SERVER_PORT:8081}
