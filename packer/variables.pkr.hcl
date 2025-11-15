@@ -40,12 +40,6 @@ variable "ami_name" {
 ### ==== ENV ====
 variable "shell_env" {
   type = object({
-    # Database
-    db_type = string
-    db_name = string
-    db_user = string
-    db_pass = string
-
     # App identity
     app_group               = string
     app_user                = string
@@ -59,8 +53,6 @@ variable "shell_env" {
 
 variable "web_env" {
   type = object({
-    db_host            = string
-    db_port            = string
     db_conn_timeout_ms = string
     server_port        = string
   })
