@@ -178,5 +178,8 @@ EOC
     script          = "${path.root}/../scripts/setup.sh"
   }
 
-  post-processor "manifest" {}
+  post-processor "manifest" {
+    output     = "${path.root}/manifest.json"
+    strip_path = true
+  }
 }

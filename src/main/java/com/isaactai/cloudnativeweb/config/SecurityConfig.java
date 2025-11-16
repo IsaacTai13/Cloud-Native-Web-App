@@ -29,6 +29,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/healthz", "/api/health").anonymous()
                         .requestMatchers(HttpMethod.POST, "/v1/user").anonymous()
+                        .requestMatchers(HttpMethod.GET, "/v1/user/validateEmail").anonymous()
                         .requestMatchers(HttpMethod.GET, "/v1/product/*").anonymous()
                         .requestMatchers(HttpMethod.GET, "/v1/product/*/image/*").anonymous()
                         .requestMatchers(HttpMethod.GET, "/v1/product/*/image").anonymous()

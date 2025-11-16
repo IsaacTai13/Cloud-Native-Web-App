@@ -142,7 +142,7 @@ jobs:
       - name: Setup Packer
         uses: hashicorp/setup-packer@v2
         with:
-          packer_version: 1.11.0
+          version: 1.11.0
 
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v4
@@ -172,11 +172,40 @@ jobs:
         working-directory: packer
         run: packer build .
 
+      - name: Debug - Find manifest.json
+        run: |
+          echo "=== Current directory ==="
+          pwd
+
+          echo "=== Files in root ==="
+          ls -la
+
+          echo "=== Files in packer/ ==="
+          ls -la packer/
+
+          echo "=== Searching for manifest.json everywhere ==="
+          find . -name "manifest.json" -type f
+
       - name: Extract AMI ID
         id: extract
         working-directory: packer
         run: |
-          AMI_ID=$(jq -r '.builds[0].artifact_id | split(":")[1]' manifest.json)
+          MANIFEST_PATH=$(find . -name "manifest.json" -type f | head -n 1)
+    
+          if [ -z "$MANIFEST_PATH" ]; then
+          echo "ERROR: manifest.json not found!"
+          exit 1
+          fi
+          
+          echo "Found manifest at: $MANIFEST_PATH"
+          AMI_ID=$(jq -r '.builds[0].artifact_id | split(":")[1]' "$MANIFEST_PATH")
+          
+          if [ -z "$AMI_ID" ] || [ "$AMI_ID" = "null" ]; then
+            echo "Failed to extract AMI ID"
+            cat "$MANIFEST_PATH"
+            exit 1
+          fi
+    
           echo "AMI_ID=$AMI_ID"
           echo "ami_id=$AMI_ID" >> "$GITHUB_OUTPUT"
 
