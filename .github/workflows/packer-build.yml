@@ -3,8 +3,6 @@ name: Packer Build (on merge)
 on:
   push:
     branches: [ main ] # treat "PR merged" as push to main
-  pull_request:
-    branches: [ main ]
 
 permissions:
   contents: read
@@ -144,7 +142,7 @@ jobs:
       - name: Setup Packer
         uses: hashicorp/setup-packer@v2
         with:
-          packer_version: 1.11.0
+          version: 1.11.0
 
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v4
